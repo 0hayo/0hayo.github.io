@@ -1,0 +1,2373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Git与Github进行SSH连接</title>
+    <url>/2020/04/14/git-github-ssh/index/</url>
+    <content><![CDATA[<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><p>1、到Git官网下载与你正在使用的操作系统(本文以windows为例)相对应的文件。一般地，选择64-bit Git for Windows Setup<br>2、安装时注意：勾选添加git到环境变量；在Windows Explorer Integration中勾选Git Bash Here。其余配置默认即可<br>3、安装完成后(可能需要注销或重启)，在任意一个文件夹空白处右键，检查是否有Git Bash Here的选项</p>
+<h3 id="设置邮箱和用户名"><a href="#设置邮箱和用户名" class="headerlink" title="设置邮箱和用户名"></a>设置邮箱和用户名</h3><p>打开Git Bash，输入命令均在Git Bash中进行</p>
+<pre><code class="js">git config --global user.name &quot;0hayo&quot;
+git config --global user.email &quot;0hayo@qq.com&quot;
+</code></pre>
+<h3 id="设置邮箱和用户名-1"><a href="#设置邮箱和用户名-1" class="headerlink" title="设置邮箱和用户名"></a>设置邮箱和用户名</h3><pre><code class="js">ssh-keygen -t rsa -C &quot;0hayo@qq.com&quot;
+</code></pre>
+<p>回车之后会出现如下所示的输出，直接按回车即可：</p>
+<pre><code class="js">Generating public/private rsa key pair.
+Enter file in which to save the key
+(/Users/your_user_directory/.ssh/id_rsa): (按回车键)
+Enter passphrase (empty for no passphrase): (按回车键)
+Enter same passphrase again: (按回车键)
+</code></pre>
+<h3 id="将公钥添加到github中"><a href="#将公钥添加到github中" class="headerlink" title="将公钥添加到github中"></a>将公钥添加到github中</h3><p>1、在C:\user\xxx.ssh\文件夹中找到id_rsa.pub这个文件，用文本编辑器(如记事本)打开，复制里面的所有内容<br>2、登陆github账号，点击头像旁的小三角展开，点击settings-SSH and GPG keys-New SSH key，在Title中取一个名字（任意），key中粘贴你刚刚复制的内容。然后点击Add SSH key即可</p>
+<h3 id="测试是否关联成功"><a href="#测试是否关联成功" class="headerlink" title="测试是否关联成功"></a>测试是否关联成功</h3><p>输入：</p>
+<pre><code class="js">ssh -T git@github.com
+</code></pre>
+<p>出现以下结果即为成功：</p>
+<pre><code class="js">Hi WangRongsheng! You&#39;ve successfully authenticated, but GitHub does not provide shell access.
+</code></pre>
+]]></content>
+      <categories>
+        <category>git</category>
+        <category>github</category>
+        <category>ssh</category>
+      </categories>
+      <tags>
+        <tag>git</tag>
+        <tag>github</tag>
+        <tag>ssh</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数组遍历的实现</title>
+    <url>/2022/02/23/array-traverse-rewrite/index/</url>
+    <content><![CDATA[<h2 id="实现数组的filter方法"><a href="#实现数组的filter方法" class="headerlink" title="实现数组的filter方法"></a>实现数组的filter方法</h2><pre><code class="js">Array.prototype.filter =&gt; (fn) {
+  let arr = [];
+  for (let i = 0; i &lt; this.lenght; i++) {
+    if (fn(this[i], i, this)) {
+      arr.push(this[i])
+    }
+  }
+  return arr;
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>Array</tag>
+        <tag>遍历</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Axios拦截请求封装</title>
+    <url>/2022/02/22/axios/index/</url>
+    <content><![CDATA[<h2 id="Axios拦截请求封装"><a href="#Axios拦截请求封装" class="headerlink" title="Axios拦截请求封装"></a>Axios拦截请求封装</h2><p>请求封装</p>
+<pre><code class="js">import { ApiError } from &#39;@/structure/Request&#39;;
+import { Config } from &#39;@/utils/Config&#39;;
+import axios, { AxiosRequestConfig } from &#39;axios&#39;;
+
+const service = axios.create({
+  baseURL: Config.API_ADDRESS,
+  timeout: Config.TIME_OUT
+});
+
+// 请求拦截器
+service.interceptors.request.use(
+  (config: AxiosRequestConfig) =&gt; {
+    config.headers[&#39;token&#39;] = Config.getToken() || &#39;&#39;;
+    return config;
+  },
+  error =&gt; {
+    Promise.reject(error);
+  }
+);
+
+// 响应拦截器
+service.interceptors.response.use(
+  response =&gt; {
+    const data = response.data;
+    if (data.code !== 200) {
+      switch (data.code) {
+        case 400:
+          return Promise.reject(ApiError.BadRequest);
+        case 401:
+          return Promise.reject(ApiError.Unauthorized);
+        case 403:
+          return Promise.reject(ApiError.Forbidden);
+        case 404:
+          return Promise.reject(ApiError.ResourceNotFound);
+        case 500:
+          return Promise.reject(ApiError.ServerSideError);
+        case 1001:
+          return Promise.reject(ApiError.CustomError.from(data.msg));
+        default:
+          return Promise.reject(ApiError.Unexpected.from(data.msg));
+      }
+    } else {
+      return data;
+    }
+  },
+  error =&gt; {
+    return Promise.reject(error);
+  }
+);
+
+export default service;
+
+</code></pre>
+<p>调用封装</p>
+<pre><code class="js">import { ApiResponse } from &#39;@/structure/Request&#39;;
+import service from &#39;@/utils/service&#39;;
+
+export class CommonApi {
+  public static async getTimestamp(): Promise&lt;number&gt; {
+    const response = await service.get&lt;void, ApiResponse&lt;number&gt;&gt;(&#39;/utils/getSystemTime&#39;);
+    return response.result;
+  }
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>Axios</category>
+      </categories>
+      <tags>
+        <tag>Axios</tag>
+        <tag>Axios拦截</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端 JS 编程题（算法类）</title>
+    <url>/2021/11/14/js-algorithm/index/</url>
+    <content><![CDATA[<h3 id="一、手写快排、冒泡、选择排序"><a href="#一、手写快排、冒泡、选择排序" class="headerlink" title="一、手写快排、冒泡、选择排序"></a>一、手写快排、冒泡、选择排序</h3><h4 id="①-快速排序"><a href="#①-快速排序" class="headerlink" title="① 快速排序"></a>① 快速排序</h4><pre><code class="js">/**
+ * --- 测试用例 ---
+ *
+ * 输入：[1, 34, 5, 76, 8, 6, 9, 7, 6, 3]
+ * 输出：[1, 3, 5, 6, 6, 7, 8, 9, 34, 76]
+ *
+ * --- 说明 ---
+ * 
+ * 思考：快速排序是稳定的吗？
+ * 解答：base 的每次选择，会导致快排是不稳定排序。
+ */
+
+const quickSort = (nums) =&gt; {
+    if (nums.length &lt; 2) {
+        return nums;
+    } else {
+        var left = [];
+        var right = [];
+        var pivot = Math.floor(nums.length / 2); // Math.floor 向下取整
+        var base = nums.splice(pivot, 1)[0];
+        for (let i = 0; i &lt; nums.length; i++) {
+            if (nums[i] &lt; base) {
+                left.push(nums[i]);
+            } else {
+                right.push(nums[i]);
+            }
+        }
+    }
+    return quickSort(left).concat([base], quickSort(right));
+}
+</code></pre>
+<h4 id="②-冒泡排序"><a href="#②-冒泡排序" class="headerlink" title="② 冒泡排序"></a>② 冒泡排序</h4><pre><code class="js">/**
+ * --- 测试用例 ---
+ *
+ * 输入：[5, 2, 4, 7, 9, 8, 3, 6, 3, 8, 3]
+ * 输出：[2, 3, 3, 3, 4, 5, 6, 7, 8, 8, 9]
+ *
+ * --- 说明 ---
+ * 
+ * 思考：冒泡排序是稳定的吗？
+ * 解答：稳定。相等的元素不发生交换
+ */
+
+const bubbleSort = (nums) =&gt; {
+    for (var i = 0; i &lt; nums.length - 1; i++) {
+        for (var j = 0; j &lt; nums.length - 1 - i; j++) {
+            if (nums[j] &gt; nums[j + 1]) {
+                let tmp = nums[j];
+                nums[j] = nums[j + 1];
+                nums[j + 1] = tmp;
+            }
+        }
+    }
+    return nums;
+}
+</code></pre>
+<h4 id="③-选择排序"><a href="#③-选择排序" class="headerlink" title="③ 选择排序"></a>③ 选择排序</h4><pre><code class="js">/**
+ * --- 测试用例 ---
+ *
+ * 输入：[6, 45, 3, 2, 5, 6, 8, 4, 3, 4, 56, 67, 5]
+ * 输出：[2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 45, 56, 67]
+ *
+ * --- 说明 ---
+ * 
+ * 思考：选择排序是稳定的吗？
+ * 解答：要看代码是如何实现的，在本例中由于有交换，所以是不稳定排序。
+ */
+
+const selectSort = (nums) =&gt; {
+    var idx; // 最小值的索引
+    for (var i = 0; i &lt; nums.length - 1; i++) {
+        idx = i;
+        for (var j = i + 1; j &lt; nums.length; j++) {
+            if (nums[j] &lt; nums[idx]) {
+                idx = j;
+            }
+        }
+        if (nums[i] &gt; nums[idx]) {
+            let tmp = nums[idx];
+            nums[idx] = nums[i];
+            nums[i] = tmp;
+        }
+    }
+    return nums;
+}s
+</code></pre>
+<h2 id="二、URL-拆解问题"><a href="#二、URL-拆解问题" class="headerlink" title="二、URL 拆解问题"></a>二、URL 拆解问题</h2><h3 id="①"><a href="#①" class="headerlink" title="①"></a>①</h3><pre><code class="js">/**
+ * --- 题目描述 ---
+ * 
+ * 实现一个函数，可以对 url 中的 query 部分做拆解，返回一个 key: value 形式的 object  
+ * 
+ * --- 实例 ---
+ * 
+ * 输入：&#39;http://sample.com/?a=1&amp;e&amp;b=2&amp;c=xx&amp;d#hash&#39; 
+ * 输出：{a: 1, b: 2, c: &#39;xx&#39;, d: &#39;&#39;}  
+ */
+
+function getQueryObj(url) {
+    // TODO
+    let arr = url.split(&#39;?&#39;)[1].split(&#39;#&#39;)[0].split(&#39;&amp;&#39;);
+    const res = {};
+    arr.forEach(e =&gt; {
+        const [key, value] = e.split(&#39;=&#39;);
+        if (!value) {
+            res[key] = &#39;&#39;;
+        } else {
+            res[key] = value;
+        }
+    })
+    return res;
+}
+</code></pre>
+<h3 id="②"><a href="#②" class="headerlink" title="②"></a>②</h3><pre><code class="js">/**
+ * --- 题目描述 ---
+ *
+ * 实现一个 parseParem 函数，将 url 转化为指定结果
+ *
+ * --- 测试用例 ---
+ *
+ * 输入：url = &#39;http://www.domain.com/?user=anonymous&amp;id=123&amp;id=456&amp;city=%E5%8C%97%E4%BA%AC&amp;enabled&#39;
+ * 输出：
+{
+ user:&#39;anonymous&#39;,
+ id:[123,456],// 重复出现的 key 要组装成数组，能被转成数字的就转成数字类型
+ city:&#39;北京&#39;,// 中文需解码
+ enabled: true // 未指定值的 key 与约定为 true
+}
+ */
+
+const parseParem = (url) =&gt; {
+    const arr = url.split(&#39;?&#39;)[1].split(&#39;&amp;&#39;);
+    const res = {};
+    arr.forEach((e) =&gt; {
+        let key = e.split(&#39;=&#39;)[0], value = e.split(&#39;=&#39;)[1];
+        if (value === undefined) {
+            res[key] = true;
+        } else {
+            if (key in res) {
+                Array.isArray(res[key]) ? res[key].push(value) : res[key] = [res[key]].concat(value);
+            } else {
+                res[key] = decodeURI(value)
+            }
+        }
+    })
+    return res;
+}
+</code></pre>
+<h2 id="三、将-HTTP-header-转换成-js-对象"><a href="#三、将-HTTP-header-转换成-js-对象" class="headerlink" title="三、将 HTTP header 转换成 js 对象"></a>三、将 HTTP header 转换成 js 对象</h2><pre><code class="JS">/**
+ * --- 题目描述 ---
+ *
+ * 实现一个方法，把 HTTP 文本形式(字符串)的 header 转换成 JS 对象。
+ * 
+ * --- 测试用例 ---
+ * 
+ * 输入：
+ * `Accept-Ranges: bytes 
+ * Cache-Control: max-age=6000, public
+ * Connection: keep-alive
+ * Content-Type: application/javascript`
+ * 输出：
+ * {
+ *   &quot;Accept-Ranges&quot;: &quot;bytes&quot;,
+ *   &quot;Cache-Control&quot;: &quot;max-age=6000, public&quot;,
+ *   Connection: &quot;keep-alive&quot;,
+ *   &quot;Content-Type&quot;: &quot;application/javascript&quot;
+ * }
+ *
+ * --- 解题思路 ---
+ *
+ * 1. 首先将每行数据作为数组的一个元素
+ * 2. 将每个元素使用冒号分割，前面为 `key`，后面为 `value`。
+ */
+
+const solution = (s) =&gt; {
+    let res = {};
+    let arr = s.split(&quot;\n&quot;);
+    arr.forEach((e) =&gt; {
+        let tmp = e.split(&quot;: &quot;);
+        res[tmp[0]] = tmp[1];
+    })
+    return res;
+}
+</code></pre>
+<h2 id="四、数组扁平化"><a href="#四、数组扁平化" class="headerlink" title="四、数组扁平化"></a>四、数组扁平化</h2><h3 id="①-递归"><a href="#①-递归" class="headerlink" title="① 递归"></a>① 递归</h3><pre><code class="JS">var arr = [1, [2, [3, 4]]];
+
+function flatten(arr) {
+    var result = [];
+    for (var i = 0, len = arr.length; i &lt; len; i++) {
+        if (Array.isArray(arr[i])) {
+            result = result.concat(flatten(arr[i]))
+        }
+        else {
+            result.push(arr[i])
+        }
+    }
+    return result;
+}
+
+console.log(flatten(arr))
+</code></pre>
+<h3 id="②-es6-拓展运算符"><a href="#②-es6-拓展运算符" class="headerlink" title="② es6 拓展运算符"></a>② es6 拓展运算符</h3><pre><code class="JS">var arr = [1, [2, [3, 4]]];
+
+function flatten(arr) {
+
+    while (arr.some(item =&gt; Array.isArray(item))) {
+        arr = [].concat(...arr);
+    }
+    return arr;
+}
+
+console.log(flatten(arr))
+</code></pre>
+<h3 id="③-flat"><a href="#③-flat" class="headerlink" title="③ flat"></a>③ flat</h3><pre><code class="JS">const arr1 = [0, 1, 2, [[[3, 4]]]];
+
+console.log(arr1.flat(3)); // 3 代表数组内最多嵌套层数
+// output: [0, 1, 2, 3, 4]
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+        <category>前端</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>前端</tag>
+        <tag>算法</tag>
+        <tag>面试题</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端 JS 编程题（原理类）</title>
+    <url>/2021/11/14/js-principle/index/</url>
+    <content><![CDATA[<h3 id="一、-深拷贝"><a href="#一、-深拷贝" class="headerlink" title="一、 深拷贝"></a>一、 深拷贝</h3><pre><code class="js">// deepClone
+function deepClone(obj = {}) {
+    if (typeof obj !== &#39;object&#39; || obj == null) {
+        // obj 是 null 或者不是对象和数组，直接返回
+        return obj;
+    }
+    let res;
+    if (obj instanceof Array) {
+        res = [];
+    } else {
+        res = {};
+    }
+
+    for (let key in obj) {
+        // 判断自身中是否包含自身属性
+        if (obj.hasOwnProperty(key)) {
+            res[key] = deepClone(obj[key])
+        }
+    }
+    return res;
+}
+// 验证
+o = {a: 1, d: {c: &#39;4&#39;}};
+res = deepClone(o);
+console.log(res);
+console.log(res == o);
+</code></pre>
+<h3 id="二、浅拷贝"><a href="#二、浅拷贝" class="headerlink" title="二、浅拷贝"></a>二、浅拷贝</h3><pre><code class="js">// 首先定义一个对象
+const hero = {
+  name: &#39;Batman&#39;,
+  city: &#39;Gotham&#39;
+};
+// **********************方法一**********************
+const heroEnhancedClone = {
+  ...hero,
+  name: &#39;Batman Clone&#39;,
+  realName: &#39;Bruce Wayne&#39;
+};
+
+// 验证
+// { name: &#39;Batman Clone&#39;, city: &#39;Gotham&#39;, realName: &#39;Bruce Wayne&#39; }
+heroEnhancedClone;
+
+// **********************方法二**********************
+const { ...heroClone } = hero;
+
+// 验证
+heroClone; // { name: &#39;Batman&#39;, city: &#39;Gotham&#39; }
+hero === heroClone; // =&gt; false
+
+// **********************方法三**********************
+const hero = {
+  name: &#39;Batman&#39;,
+  city: &#39;Gotham&#39;
+};
+
+// 验证
+const heroClone = Object.assign({}, hero);
+heroClone; // { name: &#39;Batman&#39;, city: &#39;Gotham&#39; }
+hero === heroClone; // =&gt; false
+</code></pre>
+<h3 id="三、手写-bind-函数"><a href="#三、手写-bind-函数" class="headerlink" title="三、手写 bind 函数"></a>三、手写 bind 函数</h3><pre><code class="js">// 模拟 bind
+Function.prototype.bind1 = function() {
+    // 将参数拆解为数组
+    const args = Array.prototype.slice.call(arguments) // 变成数组
+
+    // 获取 this（数组第一项）
+    const t = args.shift()
+
+    // fn1.bind(...) 中的 fn1
+    const self = this
+
+    // 返回一个函数
+    return function() {
+        return self.apply(t, args)
+    }
+}
+function fn1(a, b, c){
+    console.log(&#39;this&#39;, this)
+    console.log(a, b, c)
+    return &#39;this is fn1&#39;
+}
+const fn2 = fn1.bind1({x: 100}, 10, 20, 30)
+const res = fn2()
+console.log(res)
+</code></pre>
+<h3 id="四、手写-new"><a href="#四、手写-new" class="headerlink" title="四、手写 new"></a>四、手写 new</h3><pre><code class="js">function funcNew(obj, ...args) {
+    const newObj = Object.create(obj.prototype);
+    const result = obj.apply(newObj, args);
+    return (typeof result === &#39;object&#39; &amp;&amp; result !== null) ? result : newObj;
+}
+</code></pre>
+<p>new 一个实例会受到返回值的影响，比如：</p>
+<pre><code class="js">/**
+ * --- Person 中 return 一个对象，p 为该对象 ---
+ */
+
+function Person(name) {
+    this.name = name;
+    return {age: 35}
+}
+
+Person.prototype.sayName = function() {
+    console.log(this.name);
+} 
+
+const p = new Person(&#39;orange&#39;)
+console.log(p) // { age: 35 }
+console.log(p.name) // undefined
+p.sayName(); // TypeError: p.sayName is not a function
+
+/**
+ * --- Person 返回非对象，return 不影响结果 ---
+ */
+
+function Person(name) {
+    this.name = name;
+    return &#39;free&#39;
+}
+
+Person.prototype.sayName = function() {
+    console.log(this.name);
+} 
+
+const p = new Person(&#39;orange&#39;)
+console.log(p) // Person { name: &#39;orange&#39; }
+console.log(p.name) // orange
+p.sayName(); // orange
+</code></pre>
+<h3 id="五、手写-instanceof"><a href="#五、手写-instanceof" class="headerlink" title="五、手写 instanceof"></a>五、手写 instanceof</h3><pre><code class="js">/*
+ * --- 手动实现 instanceof ---
+ */
+
+function newInstanceOf (leftValue, rightValue) {
+    if (typeof leftValue !== &#39;object&#39; || rightValue == null) { 
+        return false;
+    }
+
+    let rightProto = rightValue.prototype;
+    leftValue = leftValue.__proto__;
+
+    while (true) {
+        if (leftValue === null) return false;
+        if (leftValue === rightProto) return true;
+        leftValue = leftValue.__proto__;
+    }
+}
+
+/*
+ * --- 验证 ---
+ */
+
+const a = [];
+const b = {};
+
+function Foo () {}
+
+var c = new Foo()
+function Child () {}
+function Father() {}
+Child.prototype = new Father()
+var d = new Child()
+
+console.log(newInstanceOf(a, Array)) // true
+console.log(newInstanceOf(b, Object)) // true
+console.log(newInstanceOf(b, Array)) // false
+console.log(newInstanceOf(a, Object)) // true
+console.log(newInstanceOf(c, Foo)) // true
+console.log(newInstanceOf(d, Child)) // true
+console.log(newInstanceOf(d, Father)) // true
+console.log(newInstanceOf(123, Object)) // false 
+console.log(123 instanceof Object) // false
+</code></pre>
+<p>这个问题既考察了 instanceof 的原理，又考察了原型链，还考察了代码能力，是一个好问题。在实现代码中，我们判断 leftValue 是否为 rightValue 的实例，思想是在 leftValue 的原型链上，即 leftValue.<strong>proto</strong> 上寻找是否存在 rightValue.prototype。</p>
+<h3 id="六、实现-Promise-all"><a href="#六、实现-Promise-all" class="headerlink" title="六、实现 Promise.all()"></a>六、实现 Promise.all()</h3><p>1、接收一个 Promise 实例的数组或具有 Iterator 接口的对象，</p>
+<p>2、如果元素不是 Promise 对象，则使用 Promise.resolve 转成 Promise 对象</p>
+<p>3、如果全部成功，状态变为 resolved，返回值将组成一个数组传给回调</p>
+<p>4、只要有一个失败，状态就变为 rejected，返回值将直接传递给回调all() 的返回值也是新的 Promise 对象</p>
+<pre><code class="js">function promiseAll(promises) {
+  return new Promise(function(resolve, reject) {
+    if (!isArray(promises)) {
+      return reject(new TypeError(&#39;arguments must be an array&#39;));
+    }
+    var resolvedCounter = 0;
+    var promiseNum = promises.length;
+    var resolvedValues = new Array(promiseNum);
+    for (var i = 0; i &lt; promiseNum; i++) {
+        (function(i) {
+            Promise.resolve(promises[i]).then(function(value) {
+            resolvedCounter++
+            resolvedValues[i] = value
+            if (resolvedCounter == promiseNum) {
+                return resolve(resolvedValues)
+            }
+            }, function(reason) {
+            return reject(reason)
+            })
+        })(i)
+    }
+  })
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+        <category>前端</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>前端</tag>
+        <tag>面试题</tag>
+        <tag>原理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端 JS 编程题（应用类）</title>
+    <url>/2021/11/16/js-application/index/</url>
+    <content><![CDATA[<h3 id="一、手写防抖（debounce）"><a href="#一、手写防抖（debounce）" class="headerlink" title="一、手写防抖（debounce）"></a>一、手写防抖（debounce）</h3><pre><code class="js">// debounce
+// 举例：购物车加减数量
+function debounce(fn, delay=500) {
+    // timer 写在闭包中，因此防抖也是闭包的一个应用
+    let timer = null;
+
+    return function() {
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() =&gt; {
+            fn.apply(this, arguments);
+            timer = null;
+        }, delay)
+    }
+}
+
+// 验证
+input1.addEventListener(&#39;keyup&#39;, debounce(() =&gt; {
+  console.log(input1.value);
+}), 600)
+</code></pre>
+<h3 id="二、手写节流（throttle）"><a href="#二、手写节流（throttle）" class="headerlink" title="二、手写节流（throttle）"></a>二、手写节流（throttle）</h3><pre><code class="js">// 节流
+// 举例：button按钮点击后置灰
+function throttle(fn, delay=100) {
+  let timer = null;
+
+  return () =&gt; {
+    if (timer) return;
+    timer = setTimeOut(() =&gt; {
+      fn.apply(this, arguments);
+      timer = null;
+    }, delay)
+  }
+}
+
+// 验证
+div1.addEventListener((&#39;drag&#39;, throttle(function (e) {
+    console.log(e.offsetX, e.offsetY)
+})))
+</code></pre>
+<h3 id="三、事件委托"><a href="#三、事件委托" class="headerlink" title="三、事件委托"></a>三、事件委托</h3><p>假设一个 ul 下有一万个 li，li 的 innerHTML 是从 0 到 9999，当点击某个 li 时输出该 li 代表的值</p>
+<pre><code class="js">window.onload = function() {
+  // 创建dom
+  var ul = document.getElementsByTagName(&quot;ul&quot;);
+  var arr = [];
+  for (let i = 0; i &lt; 100000; i++) {
+      arr.push(i);
+  }
+  ul[0].innerHTML = &#39;&lt;li&gt;&#39; + arr.join(&#39;&lt;/li&gt;&lt;li&gt;&#39;) + &#39;&lt;/li&gt;&#39;
+
+  // 事件委托 
+  let ul = document.getElementById(&#39;ul&#39;);
+  ul.onclick = (e) =&gt; {
+    console.log(e.target.innerText)
+  }
+}
+</code></pre>
+<h2 id="四、手写-Promise-加载一张图片"><a href="#四、手写-Promise-加载一张图片" class="headerlink" title="四、手写 Promise 加载一张图片"></a>四、手写 Promise 加载一张图片</h2><pre><code class="js">function loadImg(scr) {
+  return new Promise((resolve, reject) =&gt; {
+    const img = document.createElement(&#39;img&#39;);
+    img.onload = () =&gt; {
+      resolve(img);
+    }
+    img.onerror = () =&gt; {
+      reject(new Error(`图片加载失败 ${src}`))
+    }
+    img.src = src;
+  })
+}
+
+const url = &#39;https://pic.leetcode-cn.com/1604237471-xbJgZl-%E5%9B%BE%E7%89%871.png&#39;;
+loadImg(url).then(img =&gt; {
+    console.log(img.width)
+    return img
+}).then(img =&gt; {
+    console.log(img.height)
+}).catch(ex =&gt; console.error(ex))
+</code></pre>
+<h2 id="五、用-ajaxajax-原生实现一个-post-请求"><a href="#五、用-ajaxajax-原生实现一个-post-请求" class="headerlink" title="五、用 ajaxajax 原生实现一个 post 请求"></a>五、用 ajaxajax 原生实现一个 post 请求</h2><pre><code class="js">function ajax_post(url, data) {
+    // 1. 异步对象 ajax
+    var ajax = new XMLHttpRequest();
+
+    // 2. url 方法
+    ajax.open(&#39;post&#39;, url);
+
+    // 3. 设置请求报文
+    ajax.setRequestHeader(&#39;Content-type&#39;, &#39;text/plain&#39;);
+
+    // 4. 发送
+    if (data) {
+        ajax.send(data);
+    } else {
+        ajax.send();
+    }
+
+    // 5. 注册事件
+    ajax.onreadystatechange = function () {
+        if (ajax.readyState === 4 &amp;&amp; ajax.status === 200) {
+            console.log(ajax.respenseText);
+        }
+    }
+}
+</code></pre>
+<h2 id="六、每隔一秒输出一个数字"><a href="#六、每隔一秒输出一个数字" class="headerlink" title="六、每隔一秒输出一个数字"></a>六、每隔一秒输出一个数字</h2><pre><code class="js">// 使用let
+for (let i = 0; i &lt; 10; i++) {
+    setTimeout(() =&gt; {
+        console.log(i);
+    }, 1000 * i)
+}
+
+// 使用闭包
+for (var i = 0; i &lt; 10; i++) {
+    (function(j) {
+        setTimeout(() =&gt; {
+            console.log(j);
+        }, 1000 * j)
+    })(i)
+}
+
+// 使用settimeout第三个参数
+for(var i = 0; i &lt;= 5; i++){           
+    setTimeout((j) =&gt; {                
+        console.log(j);            
+    },i * 1000, i)        
+}
+</code></pre>
+<h2 id="七、-判断两个对象是否相等"><a href="#七、-判断两个对象是否相等" class="headerlink" title="七、 判断两个对象是否相等"></a>七、 判断两个对象是否相等</h2><pre><code class="js">/*
+ * @param x {Object} 对象1
+ * @param y {Object} 对象2
+ * @return  {Boolean} true 为相等，false 为不等
+ */
+
+ const deepEqual = (x, y) =&gt; {
+  if (x === y) {
+    return true;
+  } else if ((typeof x === &#39;object&#39; &amp;&amp; x != null) &amp;&amp; (typeof y === &#39;object&#39; &amp;&amp; y != null)) {
+    if (Object.keys(x).length !=== Object.keys(y).length) return false;
+    for (let prop in x) {
+      if (y.hasOwnproperty(prop)) {
+        if (!deepEqual(x.prop, y.prop)) return false;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+ }
+
+//  调库实现
+console.log(_.isEqual(x, y))
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+        <category>前端</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>前端</tag>
+        <tag>面试题</tag>
+        <tag>应用</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>手写notice弹窗组件</title>
+    <url>/2022/02/25/notice-component/index/</url>
+    <content><![CDATA[<h2 id="手写notice弹窗组件"><a href="#手写notice弹窗组件" class="headerlink" title="手写notice弹窗组件"></a>手写notice弹窗组件</h2><p>notice.vue</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div v-if=&quot;isShow&quot;&gt;
+    &lt;p&gt;{{title}}&lt;/p&gt;
+    &lt;p&gt;{{text}}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+export default {
+  props: {
+    title: {
+      type: String,
+      default: &#39;&#39;
+    },
+    text: {
+      type: String,
+      default: &#39;&#39;
+    },
+    time: {
+      type: Number,
+      default: 0
+    }
+  },
+  data() {
+    return {
+      isShow: false
+    }
+  },
+  methods: {
+    show() {
+      this.isShow = true;
+      this.time &amp;&amp; setTimeout(() =&gt; {
+        this.hide();
+      }, this.time)
+    },
+    hide() {
+      this.isShow = false;
+      this.remove();
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>create.js</p>
+<pre><code class="js">import Vue from &quot;vue&quot;;
+
+export default function create(component, props) {
+  // 创建vue实例
+  const vm = new Vue({
+    render(h) {
+      return h(component, {props})
+    }
+  }).$mount();
+  // 获取组件实例
+  const comp = vm.$children[0];
+  // 组件实例追加到body
+  document.body.appendChild(vm.$el);
+  // 清理函数
+  comp.remove = () =&gt; {
+    document.body.removeChild(vm.$el);
+    vm.$destroy();
+  }
+  // 返回组件实例
+  return comp;
+}
+</code></pre>
+<p>使用notice组件</p>
+<pre><code class="js">const notice = Create(Notice, {
+  title: &#39;登录&#39;,
+  text: &#39;正确！&#39;,
+  time: 3000
+})
+notice.show();
+</code></pre>
+]]></content>
+      <categories>
+        <category>notice弹窗组件</category>
+      </categories>
+      <tags>
+        <tag>notice</tag>
+        <tag>弹窗</tag>
+        <tag>组件</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>手写form组件</title>
+    <url>/2022/02/25/form-component/index/</url>
+    <content><![CDATA[<h2 id="form组件"><a href="#form组件" class="headerlink" title="form组件"></a>form组件</h2><p>input组件</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div&gt;
+    &lt;input :value=&quot;value&quot; @input=&quot;onInput&quot; v-bind=&quot;$attrs&quot;&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+export default {
+  inheritAttrs: false,
+  props: {
+    value: {
+      type: String,
+      default: &#39;&#39;
+    }
+  },
+  methods: {
+    onInput(e) {
+      this.$emit(&#39;input&#39;, e.target.value);
+      // 防止input多层嵌套，formItem无法正常派发事件
+      const parent = this.getParent(this.$parent);
+      parent.$emit(&#39;validate&#39;);
+    },
+    getParent(parent) {
+      if (parent.$options._componentTag === &#39;CFormItem&#39;) return parent;
+      this.getParent(parent.$parent);
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>checkbox组件</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div&gt;
+    &lt;input type=&quot;checkbox&quot; :checked=&quot;checked&quot; @change=&quot;onCahnge&quot; v-bind=&quot;$attrs&quot;&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+export default {
+  inheritAttrs: false,
+  props: {
+    checked: {
+      type: Boolean,
+      default: false
+    }
+  },
+  model: {
+    prop: &#39;checked&#39;,
+    event: &#39;change&#39;
+  },
+  methods: {
+    onCahnge(e) {
+      this.$emit(&#39;change&#39;, e.target.checked);
+      const parent = this.getParent(this.$parent);
+      parent.$emit(&#39;validate&#39;);
+    },
+    getParent(parent) {
+      if (parent.$options._componentTag === &#39;CFormItem&#39;) return parent;
+      this.getParent(parent.$parent);
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>formItem组件</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div&gt;
+    &lt;label v-if=&quot;label&quot;&gt;
+      {{ label }}
+    &lt;/label&gt;
+    &lt;slot&gt;&lt;/slot&gt;
+    &lt;p v-if=&quot;erroeMsg&quot;&gt;{{ erroeMsg }}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+/*
+  表单异步验证js库：async-validator，element-ui中的form组件所使用的验证方式。
+  npm install --save async-validator
+*/
+import Schema from &#39;async-validator&#39;;
+export default {
+  props: {
+    label: {
+      type: String,
+      default: &#39;&#39;
+    },
+    prop: {
+      type: String
+    }
+  },
+  inject: [&#39;form&#39;],
+  data() {
+    return {
+      erroeMsg: &#39;&#39;
+    }
+  },
+  mounted() {
+    this.$on(&#39;validate&#39;, () =&gt; {
+      this.validate();
+    })
+  },
+  methods: {
+    validate() {
+      // 获取校验规则
+      const rule = this.form.rules[this.prop];
+      // 获取数值
+      const value = this.form.model[this.prop];
+      // 执行校验
+      const desc = {
+        [this.prop]: rule
+      };
+      const schema = new Schema(desc);
+      return schema.validate({[this.prop]: value}, errors =&gt; {
+        if (errors) {
+          this.erroeMsg = errors[0].message;
+        } else {
+          this.erroeMsg = &#39;&#39;;
+        }
+      });
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>form组件</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div&gt;
+    &lt;slot&gt;&lt;/slot&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+export default {
+  props: {
+    model: {
+      type: Object,
+      requireg: true
+    },
+    rules: {
+      type: Object
+    }
+  },
+  provide() {
+    return {
+      form : this
+    }
+  },
+  data() {
+    return {
+    }
+  },
+  methods: {
+    validate(cb) {
+      const tasks = this.$children
+        .filter(item =&gt; item.prop)
+        .map(item =&gt; item.validate());
+      Promise.all(tasks)
+        .then(() =&gt; cb(true))
+        .catch(() =&gt; cb(false))
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre>
+<p>引用form组件</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div class=&quot;wrap&quot;&gt;
+    &lt;CForm :model=&quot;model&quot; :rules=&quot;rules&quot; ref=&quot;form&quot;&gt;
+      &lt;CFormItem label=&quot;用户名&quot; prop=&quot;userName&quot;&gt;
+        &lt;CInput v-model=&quot;model.userName&quot;&gt;&lt;/CInput&gt;
+      &lt;/CFormItem&gt;
+      &lt;CFormItem label=&quot;密码&quot; prop=&quot;passWord&quot;&gt;
+        &lt;CInput v-model=&quot;model.passWord&quot; type=&quot;passWord&quot;&gt;&lt;/CInput&gt;
+      &lt;/CFormItem&gt;
+      &lt;CFormItem label=&quot;勾选&quot; prop=&quot;checked&quot;&gt;
+        &lt;CCheckBox v-model=&quot;model.checked&quot;&gt;&lt;/CCheckBox&gt;
+      &lt;/CFormItem&gt;
+      &lt;CFormItem&gt;
+        &lt;button @click=&quot;login&quot;&gt;登录&lt;/button&gt;
+      &lt;/CFormItem&gt;
+
+      {{ model }}
+    &lt;/CForm&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+import CForm from &#39;@/components/form/index&#39;;
+import CInput from &#39;@/components/form/input.vue&#39;
+import CCheckBox from &#39;@/components/form/checkBox&#39;
+import CFormItem from &#39;@/components/form/formItem.vue&#39;
+export default {
+  components: {
+    CForm,
+    CInput,
+    CFormItem,
+    CCheckBox
+  },
+  data() {
+    return {
+      model: {
+        userName: &#39;&#39;,
+        passWord: &#39;&#39;,
+        checked: false
+      },
+      rules: {
+        userName: [{required: true, message: &quot;请输入用户名&quot;}],
+        passWord: [{required: true, message: &quot;请输入密码&quot;}],
+        checked: [{validator: (rule, value) =&gt; value, message: &quot;请勾选&quot;}]
+      }
+    }
+  },
+  methods: {
+    login() {
+      this.$refs.form.validate((isValid) =&gt; {
+        if (isValid) {
+          alert(&#39;登录！&#39;)
+        } else {
+          alert(&#39;错误！&#39;)
+        }
+      })
+    }
+  },
+  created() {
+    // console.log(&#39;路由查询参数&#39;,this.$tab.query())
+  },
+}
+&lt;/script&gt;
+&lt;style scoped&gt;
+&lt;/style&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>form</category>
+      </categories>
+      <tags>
+        <tag>组件</tag>
+        <tag>form</tag>
+        <tag>表单验证</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sortable+element实现表格行拖拽</title>
+    <url>/2020/04/07/sortable-element-drag/index/</url>
+    <content><![CDATA[<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><pre><code class="bash">npm install vuedraggable
+</code></pre>
+<h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><pre><code class="js">import Sortable from &#39;sortablejs&#39;
+</code></pre>
+<h3 id="el-table-添加row-key属性"><a href="#el-table-添加row-key属性" class="headerlink" title="el-table 添加row-key属性"></a>el-table 添加row-key属性</h3><pre><code class="html">&lt;el-table
+  ref=&quot;filterTable&quot;
+  row-key=&quot;ip&quot; 
+  @filter-change=&quot;handlerFilterChange&quot; 
+  class=&quot;cl-table&quot; 
+  :data=&quot;resourceList&quot; 
+  v-loading=&quot;resourceListLoading&quot; 
+  stripe
+  style=&quot;width:100%;&quot;&gt;
+  &lt;el-table-column
+    prop=&quot;name&quot;
+    label=&quot;主机名&quot; 
+    :min-width=&quot;150&quot; 
+    show-overflow-tooltip&gt;
+  &lt;/el-table-column&gt;
+&lt;/el-table&gt;
+</code></pre>
+<h3 id="将拖拽元素设置为要拖动项的父级元素"><a href="#将拖拽元素设置为要拖动项的父级元素" class="headerlink" title="将拖拽元素设置为要拖动项的父级元素"></a>将拖拽元素设置为要拖动项的父级元素</h3><pre><code class="js">mounted() {
+  // 表格中需要实现行拖动，所以选中tr的父级元素
+  const table = document.querySelector(&#39;.el-table__body-wrapper tbody&#39;)
+  const self = this
+  Sortable.create(table, {
+    onEnd({ newIndex, oldIndex }) {
+      console.log(newIndex, oldIndex)
+      const targetRow = self.resourceList.splice(oldIndex, 1)[0]
+      self.resourceList.splice(newIndex, 0, targetRow)
+    }
+  })
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>VUE</category>
+        <category>element</category>
+      </categories>
+      <tags>
+        <tag>VUE</tag>
+        <tag>element</tag>
+        <tag>table</tag>
+        <tag>拖拽</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>electron（send、sendSync、invoke）主进程与渲染进程通信的区别</title>
+    <url>/2022/04/06/electron-ipc/index/</url>
+    <content><![CDATA[<h2 id="ipcRender-send"><a href="#ipcRender-send" class="headerlink" title="ipcRender.send"></a>ipcRender.send</h2><p>渲染进程 render.js</p>
+<pre><code class="js">// render.js
+const { ipcRenderer } = require(&#39;electron&#39;);
+
+// send 方法发送，并绑定另一个事件接收返回值
+function sendMessageToMain() {
+  ipcRenderer.send(&#39;render-send-to-main&#39;, &#39;我是渲染进程通过 send 发送的消息&#39;);
+}
+ipcRenderer.on(&#39;main-reply-to-render&#39;, (event, message) =&gt; {
+  console.log(&#39;replyMessage&#39;, message); // &#39;replyMessage 主进程通过 reply 回复给渲染进程的消息&#39;
+})
+</code></pre>
+<p>主进程 main.js：</p>
+<pre><code class="js">// main.js
+const { ipcMain } = require(&#39;electron&#39;);
+
+ipcMain.on(&#39;render-send-to-main&#39;, (event, message) =&gt; {
+  console.log(`receive message from render: ${message}`)
+  event.reply(&#39;main-reply-to-render&#39;, &#39;主进程通过 reply 回复给渲染进程的消息&#39;)
+})
+</code></pre>
+<p>1、主进程通过 ipcMain.on 来监听渲染进程的消息<br>2、主进程接收到消息后，可以回复消息，也可以不回复。如果回复的话，通过 event.reply 发送另一个事件，渲染进程监听这个事件得到回复结果。如果不回复消息的话，渲染进程将接着执行 ipcRenderer.send 之后的代码</p>
+<h2 id="ipcRender-sendSync"><a href="#ipcRender-sendSync" class="headerlink" title="ipcRender.sendSync"></a>ipcRender.sendSync</h2><p>渲染进程 render.js：</p>
+<pre><code class="js">// render.js
+const { ipcRenderer } = require(&#39;electron&#39;);
+
+function sendSyncMessageToMain() {
+  const replyMessage = ipcRenderer.sendSync(&#39;render-send-sync-to-main&#39;, &#39;我是渲染进程通过 syncSend 发送给主进程的消息&#39;);
+  console.log(&#39;replyMessage&#39;, replyMessage); // &#39;主进程回复的消息&#39;
+}
+</code></pre>
+<p>主进程 main.js：</p>
+<pre><code class="js">// main.js
+const { ipcMain } = require(&#39;electron&#39;);
+
+ipcMain.on(&#39;render-send-sync-to-main&#39;, (event, message) =&gt; {
+  console.log(`receive message from render: ${message}`)
+  event.returnValue = &#39;主进程回复的消息&#39;;
+})
+</code></pre>
+<p>1、主进程通过 ipcMain.on 来处理渲染进程发送的消息<br>2、主进程通过 event.returnValue 回复渲染进程消息<br>3、如果 event.returnValue 不为 undefined 的话，渲染进程会等待 sendSync 的返回值才执行后面的代码<br>4、请保证 event.returnValue是有值的，否则会造成非预期的影响</p>
+<h2 id="ipcRender-invoke"><a href="#ipcRender-invoke" class="headerlink" title="ipcRender.invoke"></a>ipcRender.invoke</h2><p>渲染进程 render.js：</p>
+<pre><code class="js">// render.js
+const { ipcRenderer } = require(&#39;electron&#39;);
+
+async function invokeMessageToMain() {
+  const replyMessage = await ipcRenderer.invoke(&#39;render-invoke-to-main&#39;, &#39;我是渲染进程通过 invoke 发送的消息&#39;);
+  console.log(&#39;replyMessage&#39;, replyMessage);
+}
+</code></pre>
+<p>主进程 main.js：</p>
+<pre><code class="js">// main.js
+const { ipcMain } = require(&#39;electron&#39;);
+
+ipcMain.handle(&#39;render-invoke-to-main&#39;, async (event, message) =&gt; {
+  console.log(`receive message from render: ${message}`)
+  const result = await asyncWork();
+  return result;
+})
+
+const asyncWork = async () =&gt; {
+  return new Promise(resolve =&gt; {
+    setTimeout(() =&gt; {
+      resolve(&#39;延迟 2 秒获取到主进程的返回结果&#39;)
+    }, 2000)
+  })
+}
+</code></pre>
+<p>1、主进程通过 ipcMain.handle 来处理渲染进程发送的消息<br>2、主进程接收到消息后，可以回复消息，也可以不回复。如果回复消息的话，可以通过 return 给渲染进程回复消息；如果不回复消息的话，渲染进程将接着执行 ipcRenderer.invoke 之后的代码<br>3、渲染进程异步等待主进程的回应， invoke 的返回值是一个 Promise</p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>electron</tag>
+        <tag>通信</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>viewPort适配移动端</title>
+    <url>/2020/04/07/viewPort/index/</url>
+    <content><![CDATA[<h3 id="PostCSS-基本插件"><a href="#PostCSS-基本插件" class="headerlink" title="PostCSS 基本插件"></a>PostCSS 基本插件</h3><p>默认安装vue-cli 脚手架</p>
+<pre><code class="js">module.exports = {
+   &quot;plugins&quot;: {
+   &quot;postcss-import&quot;: {},
+        &quot;postcss-url&quot;: {},
+        // to edit target browsers: use &quot;browserslist&quot; field in package.json
+        &quot;autoprefixer&quot;: {}
+    }
+}
+</code></pre>
+<h3 id="PostCSS-其他插件"><a href="#PostCSS-其他插件" class="headerlink" title="PostCSS 其他插件"></a>PostCSS 其他插件</h3><p>安装其他插件</p>
+<pre><code class="bash">npm i postcss-aspect-ratio-mini postcss-px-to-viewport postcss-write-svg postcss-cssnext postcss-viewport-units cssnano --S
+</code></pre>
+<p>安装成功之后 package.json 显示：</p>
+<pre><code class="js">&quot;dependencies&quot;: {
+    &quot;axios&quot;: &quot;^0.18.0&quot;,
+    &quot;cssnano&quot;: &quot;^4.1.0&quot;,
+    &quot;postcss-aspect-ratio-mini&quot;: &quot;0.0.2&quot;,
+    &quot;postcss-cssnext&quot;: &quot;^3.1.0&quot;,
+    &quot;postcss-px-to-viewport&quot;: &quot;0.0.3&quot;,
+    &quot;postcss-viewport-units&quot;: &quot;^0.1.4&quot;,
+    &quot;postcss-write-svg&quot;: &quot;^3.0.1&quot;,
+    &quot;vue&quot;: &quot;^2.5.2&quot;,
+    &quot;vue-router&quot;: &quot;^3.0.1&quot;,
+    &quot;vuex&quot;: &quot;^3.0.1&quot; 
+}
+</code></pre>
+<h3 id="postcssrc-js-文件设置"><a href="#postcssrc-js-文件设置" class="headerlink" title=".postcssrc.js 文件设置"></a>.postcssrc.js 文件设置</h3><p>脚手架原有的三个配置项需要注释 autoprefixer ，理由是 cssnano 中已经具有此配置</p>
+<pre><code class="js">module.exports = {
+    &quot;plugins&quot;: {
+        &quot;postcss-import&quot;: {},
+        &quot;postcss-url&quot;: {},
+        // to edit target browsers: use &quot;browserslist&quot; field in package.json
+        // &quot;autoprefixer&quot;: {}, 
+        &quot;postcss-aspect-ratio-mini&quot;: {},
+        &quot;postcss-write-svg&quot;: {
+            utf8: false
+        },
+        &quot;postcss-cssnext&quot;: {},
+        &quot;postcss-px-to-viewport&quot;: {
+            viewportWidth: 750, // 视窗的宽度，对应的是我们设计稿的宽度，一般是750
+            // viewportHeight: 1334, // 视窗的高度，根据750设备的宽度来指定，一般指定1334，也可以不设置
+            unitPrecision: 3, // 指定`px`转换为视窗单位值的小数位数（很多时候无法整除）
+            viewportUnit: &#39;vw&#39;, // 指定需要转换成的视窗单位，建议使用vw
+            selectorBlackList: [&#39;.ignore&#39;, &#39;.hairlines&#39;], // 指定不转换为视窗单位的类，可以自定义， 可以无限添加,建议定义一至两个通用的类名 
+            minPixelValue: 1, // 小于或等于`1px`不转换为视窗单位，你也可以设置为你想要的值
+            mediaQuery: false // 允许在媒体查询中转换`px`
+        },
+        &quot;postcss-viewport-units&quot;: {},
+        &quot;cssnano&quot;: {
+            preset: &quot;advanced&quot;,
+            autoprefixer: false,
+            &quot;postcss-zindex&quot;: false
+        }
+    }
+}
+</code></pre>
+<h3 id="cssnano-插件安装"><a href="#cssnano-插件安装" class="headerlink" title="cssnano 插件安装"></a>cssnano 插件安装</h3><p>在配置中我们使用了 preset: “advanced” ，所以还需要安装</p>
+<pre><code class="bash">npm i cssnano-preset-advanced --save-dev
+</code></pre>
+<p>基本配置</p>
+<pre><code class="js">&quot;cssnano&quot;: {
+    preset: &quot;advanced&quot;,
+    autoprefixer: false,
+    &quot;postcss-zindex&quot;: false
+}
+</code></pre>
+<h3 id="postcss-px-to-viewport"><a href="#postcss-px-to-viewport" class="headerlink" title="postcss-px-to-viewport"></a>postcss-px-to-viewport</h3><p>这是核心的插件，帮助我们将 px 转成 vw、vh、vmin、vmax<br>目前出视觉设计稿，都是使用 750px，那么 100vw = 750px，即 1vw = 7.5px。那么我们根据设计图上 的px 值直接转换成对于的 vw 值。实际撸码过程中，不需要做任何计算，直接在代码中写 px 即可</p>
+]]></content>
+      <categories>
+        <category>VUE</category>
+        <category>移动端</category>
+      </categories>
+      <tags>
+        <tag>VUE</tag>
+        <tag>移动端</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vite配置全局svg图标</title>
+    <url>/2022/04/07/svg-vite/index/</url>
+    <content><![CDATA[<h2 id="vite-config-ts配置"><a href="#vite-config-ts配置" class="headerlink" title="vite.config.ts配置"></a>vite.config.ts配置</h2><pre><code class="js">import path from &#39;path&#39;;
+import { createSvgIconsPlugin } from &#39;vite-plugin-svg-icons&#39;;
+export default defineConfig(env =&gt; {
+  return {
+    plugins: [
+      createSvgIconsPlugin({
+        // 指定要缓存的图标文件夹
+        iconDirs: [path.resolve(process.cwd(), &#39;src/render/assets/svg&#39;)],
+        // 执行icon name的格式
+        symbolId: &#39;icon-[dir]-[name]&#39;,
+      })
+    ]
+  }
+})
+</code></pre>
+<h2 id="SvgIcon-vue"><a href="#SvgIcon-vue" class="headerlink" title="SvgIcon.vue"></a>SvgIcon.vue</h2><pre><code class="vue">&lt;template&gt;
+  &lt;svg :class=&quot;svgClass&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;use :xlink:href=&quot;iconName&quot; :fill=&quot;color&quot; /&gt;
+  &lt;/svg&gt;
+&lt;/template&gt;
+
+&lt;script lang=&quot;ts&quot;&gt;
+import { defineComponent, computed } from &#39;vue&#39;;
+export default defineComponent({
+  props: {
+    iconClass: {
+      type: String,
+      required: true
+    },
+    className: {
+      type: String,
+      default: &#39;&#39;
+    },
+    color: {
+      type: String,
+      default: &#39;&#39;
+    },
+  },
+  setup(props) {
+    return {
+      iconName: computed(() =&gt; `#icon-${props.iconClass}`),
+      svgClass: computed(() =&gt; {
+        if (props.className) {
+          return `svg-icon ${props.className}`
+        }
+        return &#39;svg-icon&#39;
+      })
+    }
+  }
+})
+&lt;/script&gt;
+
+&lt;style scoped&gt;
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  position: relative;
+  fill: currentColor;
+  vertical-align: -2px;
+}
+&lt;/style&gt;
+</code></pre>
+<h2 id="main-js-引用SvgIcon-vue"><a href="#main-js-引用SvgIcon-vue" class="headerlink" title="main.js 引用SvgIcon.vue"></a>main.js 引用SvgIcon.vue</h2><pre><code class="js">import { createApp } from &#39;vue&#39;
+import App from &#39;./App.vue&#39;
+import &#39;virtual:svg-icons-register&#39;;
+import SvgIcon from &#39;@/render/components/svgIcon/SvgIcon.vue&#39;;
+const app = createApp(App);
+app.component(&#39;svg-icon&#39;,SvgIcon);
+</code></pre>
+<h2 id="home-vue-使用SvgIcon"><a href="#home-vue-使用SvgIcon" class="headerlink" title="home.vue 使用SvgIcon"></a>home.vue 使用SvgIcon</h2><pre><code class="vue">&lt;template&gt;
+  &lt;div class=&quot;home&quot;&gt;
+    &lt;svg-icon iconClass=&quot;noNet&quot; className=&quot;className&quot; /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>vite</tag>
+        <tag>svg</tag>
+        <tag>图标</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue-element-table-滚动加载</title>
+    <url>/2020/04/07/vue-element-table_rolling-load/index/</url>
+    <content><![CDATA[<p>首先在main.js文件注册全局事件，代码如下：</p>
+<pre><code class="js">Vue.directive(&#39;loadmore&#39;, {
+  bind(el, binding) {
+    var p = 0;
+    var t = 0;
+    var down = true;
+    var selectWrap = el.querySelector(&#39;.el-table__body-wrapper&#39;)
+    selectWrap.addEventListener(&#39;scroll&#39;, function() {
+      //判断是否向下滚动
+      p = this.scrollTop;
+      // if ( t &lt; p){down=true}else{down=false}
+      if(t &lt; p){
+        down = true;
+      }else{
+        down = false;
+      }
+      t = p;
+      //判断是否到底
+      const sign = 10;
+      const scrollDistance = this.scrollHeight - this.scrollTop - this.clientHeight
+      if (scrollDistance &lt;= sign &amp;&amp; down) {
+        binding.value()
+      }
+    })
+  }
+})
+</code></pre>
+<p>在组件中，使用自定义的事件：<br>v-loadmore=”loadMore”<br>在methods中调用loadMore<br>这样就实现啦！！！</p>
+]]></content>
+      <categories>
+        <category>VUE</category>
+        <category>element</category>
+      </categories>
+      <tags>
+        <tag>VUE</tag>
+        <tag>element</tag>
+        <tag>table</tag>
+        <tag>滚动加载</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>webpack配置全局svg图标</title>
+    <url>/2022/03/17/svg-webpack/index/</url>
+    <content><![CDATA[<h2 id="webpack配置"><a href="#webpack配置" class="headerlink" title="webpack配置"></a>webpack配置</h2><pre><code class="js">const { defineConfig } = require(&#39;@vue/cli-service&#39;)
+const path = require(&#39;path&#39;)
+function resolve(dir) {
+  return path.join(__dirname, dir)
+}
+const port = 7070;
+const title = &#39;webpack测试&#39;;
+module.exports = defineConfig({
+  transpileDependencies: true,
+  lintOnSave: false, // 是否在开发环境下每次保存代码时都启用 eslint验证
+  devServer: {
+    port: port
+  },
+  chainWebpack(config) {
+    config.module.rule(&#39;svg&#39;)
+      .exclude.add(resolve(&#39;src/assets&#39;))
+
+    // 添加svg-sprite-loader
+    config.module.rule(&#39;svg-icon&#39;)
+      .test(/\.svg$/)
+      .include.add(resolve(&#39;src/assets&#39;))
+        .end()
+      .use(&#39;svg-sprite-loader&#39;) //  添加loader
+        .loader(&#39;svg-sprite-loader&#39;)//  切换上下文到loader
+        .options({symbolId: &#39;icon-[name]&#39;})
+        .end()
+  }
+})
+</code></pre>
+<h2 id="icon-vue"><a href="#icon-vue" class="headerlink" title="icon.vue"></a>icon.vue</h2><pre><code class="vue">&lt;template&gt;
+  &lt;div class=&quot;icon&quot;&gt;
+    &lt;svg&gt;
+      &lt;use :xlink:href=&quot;iconName&quot; :class=&quot;svgClass&quot;&gt;&lt;/use&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script lang=&quot;ts&quot;&gt;
+import { Component, Vue, Prop } from &#39;vue-property-decorator&#39;;
+@Component({
+  components: {
+  },
+})
+export default class HomeView extends Vue {
+  @Prop() private iconClass!: string;
+  @Prop() private className!: string;
+
+  get iconName(): string {
+    return `#icon-${this.iconClass}`;
+  }
+
+  get svgClass(): string {
+    if(this.className) {
+      return `icon-svg ${this.className}`;
+    }
+    return &#39;icon-svg&#39;;
+  }
+}
+&lt;/script&gt;
+&lt;style scoped&gt;
+.icon-svg {
+
+}
+&lt;/style&gt;
+</code></pre>
+<h2 id="icon-js"><a href="#icon-js" class="headerlink" title="icon.js"></a>icon.js</h2><pre><code class="js">import Vue from &quot;vue&quot;;
+import Icon from &#39;@/components/icon.vue&#39;
+// 图标自动导入
+// 利用webpack 的require.context自动导入
+
+// 返回的req是只去加载svg目录中的模块的函数
+const req = require.context(&#39;./svg&#39;, false, /\.svg$/) //  路径， 是否递归， 匹配规则
+
+req.keys().map(req);
+
+Vue.component(&#39;Icon&#39;, Icon)
+</code></pre>
+<h2 id="main-js-引用icon-js"><a href="#main-js-引用icon-js" class="headerlink" title="main.js 引用icon.js"></a>main.js 引用icon.js</h2><pre><code class="js">import &#39;@/assets/index&#39;
+</code></pre>
+<h2 id="home-vue-使用icon"><a href="#home-vue-使用icon" class="headerlink" title="home.vue 使用icon"></a>home.vue 使用icon</h2><pre><code class="vue">&lt;template&gt;
+  &lt;div class=&quot;home&quot;&gt;
+    &lt;icon icon-class=&quot;wx&quot;&gt;&lt;/icon&gt;
+    &lt;icon icon-class=&quot;qq&quot;&gt;&lt;/icon&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script lang=&quot;ts&quot;&gt;
+import { Component, Vue } from &#39;vue-property-decorator&#39;;
+
+@Component({
+  components: {}
+})
+export default class HomeView extends Vue {}
+&lt;/script&gt;
+
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>svg</tag>
+        <tag>图标</tag>
+        <tag>webpack</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue cli 开启gzip压缩 nginx开启gzip</title>
+    <url>/2022/08/04/vue%20cli%20%E5%BC%80%E5%90%AFgzip%E5%8E%8B%E7%BC%A9%20nginx%E5%BC%80%E5%90%AFgzip/index/</url>
+    <content><![CDATA[<h2 id="vue-cli-开启gzip压缩-nginx开启gzip"><a href="#vue-cli-开启gzip压缩-nginx开启gzip" class="headerlink" title="vue cli 开启gzip压缩 nginx开启gzip"></a>vue cli 开启gzip压缩 nginx开启gzip</h2><h4 id="插件安装"><a href="#插件安装" class="headerlink" title="插件安装"></a>插件安装</h4><p>推荐版本 @6.1.1 / @4.0.0</p>
+<pre><code>yarn add compression-webpack-plugin
+</code></pre><h4 id="vue-config-js-配置"><a href="#vue-config-js-配置" class="headerlink" title="vue.config.js 配置"></a>vue.config.js 配置</h4><pre><code class="js">const CompressionPlugin = require(&#39;compression-webpack-plugin&#39;);
+
+module.exports = {
+ configureWebpack: config =&gt; {
+    if (process.env.NODE_ENV === &#39;production&#39;) {
+      return {
+        plugins: [
+          new CompressionPlugin({
+            algorithm: &#39;gzip&#39;,
+            test: /\.(js|css)$/,// 匹配文件名
+            threshold: 10240, // 对超过10k的数据压缩
+            deleteOriginalAssets: false, // 不删除源文件
+            minRatio: 0.8 // 压缩比
+          })
+        ]
+      }
+    }
+  }
+}
+</code></pre>
+<h4 id="nginx配置"><a href="#nginx配置" class="headerlink" title="nginx配置"></a>nginx配置</h4><p>直接在nginx的配置文件里加上这句 gzip_static on; # 开启 gzip 压缩<br>直接在配置文件的第一个大括号最后面书写就行了</p>
+]]></content>
+      <categories>
+        <category>VUE</category>
+        <category>webpack</category>
+      </categories>
+      <tags>
+        <tag>VUE</tag>
+        <tag>webpack</tag>
+        <tag>gzip</tag>
+        <tag>nginx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>简单实现vue双向绑定以及v-text、v-model、v-html、@click、插值表达式</title>
+    <url>/2022/03/11/vuejs/index/</url>
+    <content><![CDATA[<h2 id="html页面"><a href="#html页面" class="headerlink" title="html页面"></a>html页面</h2><pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Vue&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;script src=&quot;Untitled-1.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;Compile.js&quot;&gt;&lt;/script&gt;
+  &lt;div id=&quot;app&quot;&gt;
+    &lt;p&gt;{{name}}&lt;/p&gt;
+    &lt;p v-text=&quot;name&quot;&gt;&lt;/p&gt;
+    &lt;p&gt;{{age}}&lt;/p&gt;
+    &lt;input type=&quot;text&quot; v-model=&quot;model&quot;&gt;
+    &lt;div v-html=&quot;html&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;script&gt;
+    const app = new Vue({
+      el: &#39;#app&#39;,
+      data: {
+        name: &#39;jina&#39;,
+        // obj: {
+        //   age: 18
+        // },
+        age: 12,
+        model: &#39;aaa&#39;,
+        html: &#39;&lt;button @click=&quot;click&quot;&gt;这是一个按钮&lt;/button&gt;&#39;
+      },
+      created() {
+        // setTimeout(() =&gt; {
+        //   this.name = &#39;修改测试&#39;
+        // }, 2000);
+      },
+      metheds: {
+        click() {
+          this.name = &#39;jierui&#39;;
+          console.log(this.name);
+        }
+      }
+    })
+    // app.name = &#39;zong&#39;;
+    // app.obj.age = 12;
+    // console.log(app.$data);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="实现Vue构造函数"><a href="#实现Vue构造函数" class="headerlink" title="实现Vue构造函数"></a>实现Vue构造函数</h2><pre><code class="js">class Vue {
+  constructor(options) {
+    // 保存数据
+    this.$options = options;
+    // 传入data
+    this.$data = options.data;
+    this.$metheds = options.metheds;
+    // 响应化处理
+    this.observe(this.$data);
+
+    // Watcher 测试
+    // new Watcher(this, &#39;name&#39;);
+    // this.name;
+    // new Watcher(this, &#39;obj.age&#39;);
+    // this.obj.age;
+
+    // 编译器测试
+    new Compile(options.el, this);
+
+    if (options.created) {
+      options.created.call(this);
+    }
+  }
+
+  observe(data) {
+    // 暂不考虑数组和函数
+    if (!data || typeof data !== &#39;object&#39;) return;
+    Object.keys(data).forEach(key =&gt; {
+      this.defineReactive(data, key, data[key]);
+      // 代理data中的属性到vue根上
+      this.proxyData(key);
+    })
+  }
+
+  defineReactive(data, key, value) {
+    // 递归处理
+    this.observe(value);
+    // 定义一个Dep
+    const dep = new Dep();
+    // 给data中的每个key定义拦截
+    Object.defineProperty(data, key, {
+      get() {
+        // 收集依赖
+        Dep.target &amp;&amp; dep.addDep(Dep.target);
+        return value;
+      },
+      set(newValue) {
+        if (newValue !== value) {
+          value = newValue;
+          console.log(key + &#39; 数据更新！&#39;)
+          dep.notify();
+        }
+      }
+    })
+  }
+
+  proxyData(key) {
+    Object.defineProperty(this, key, {
+      get() {
+        return this.$data[key];
+      },
+      set(newValue) {
+        this.$data[key] = newValue;
+      }
+    })
+  }
+}
+
+// 创建dep 管理所有watcher
+class Dep {
+  constructor() {
+    // 存储所有依赖
+    this.watchers = [];
+  }
+
+  addDep(watcher) {
+    this.watchers.push(watcher);
+  }
+
+  notify() {
+    this.watchers.forEach(watcher =&gt; watcher.update())
+  }
+}
+
+// 创建watcher 保存data中数值和页面中的挂钩关系
+class Watcher {
+  constructor(vm, key, cb) {
+    this.vm= vm;
+    this.key = key;
+    this.cb = cb;
+    // 创建实例时 立刻将该实例指向静态属性Dep.target便于依赖收集
+    Dep.target = this;
+    this.vm[key];
+    Dep.target = null;
+  }
+
+  update() {
+    console.log(this.key + &#39;更新了！&#39;);
+    this.cb.call(this.vm, this.vm[this.key]);
+  }
+}
+</code></pre>
+<h2 id="实现Compile构造函数"><a href="#实现Compile构造函数" class="headerlink" title="实现Compile构造函数"></a>实现Compile构造函数</h2><pre><code class="js">// 遍历dom结构，解析指令和插值表达式
+class Compile {
+  // el: 待编译模板  vm: Vue实例
+  constructor(el, vm) {
+    this.$el = document.querySelector(el);
+    this.$vm = vm;
+
+    // 把模板中的内容移到片段操作
+    this.$fragment = this.nodeFragment(this.$el);
+    // 执行编译器
+    this.compile(this.$fragment);
+    // 放回$el中
+    this.$el.appendChild(this.$fragment);
+  }
+
+  nodeFragment(el) {
+    /*
+      DocumentFragments 是DOM节点。它们不是主DOM树的一部分。
+      通常的用例是创建文档片段，将元素附加到文档片段，然后将文档片段附加到DOM树。
+      在DOM树中，文档片段被其所有的子元素所代替。
+      因为文档片段存在于内存中，并不在DOM树中，所以将子元素插入到文档片段时不会引起页面回流（对元素位置和几何上的计算）。
+      因此，使用文档片段通常会带来更好的 性能 
+    */
+   const fragment = document.createDocumentFragment();
+   let child;
+   while (child = el.firstChild) {
+     fragment.appendChild(child);
+   }
+   return fragment;
+  }
+
+  compile(el) {
+    const childNodes = el.childNodes;
+    Array.from(childNodes).forEach(node =&gt; {
+      if (node.nodeType === 1) {
+        // 元素
+        console.log(&#39;编译元素&#39; + node.nodeName);
+        this.compileElement(node);
+      } else if (this.isInter(node)) {
+        // 文本
+        console.log(&#39;编译插值文本&#39; + node.textContent);
+        this.compileText(node);
+      }
+      // 递归子节点
+      if (node.children &amp;&amp; node.childNodes.length &gt; 0) {
+        this.compile(node);
+      }
+    })
+  }
+
+  // 正则表达式解析是否为文本
+  isInter(node) {
+    return node.nodeType === 3 &amp;&amp; /\{\{(.*)\}\}/.test(node.textContent)
+  }
+
+  // 文本编译
+  compileText(node) {
+    const exp = RegExp.$1;
+    this.update(node, exp, &#39;text&#39;);
+    node.textContent = this.$vm[RegExp.$1];
+  }
+
+  // 元素编译
+  compileElement(node) {
+    const nodeAttrs = node.attributes;
+    Array.from(nodeAttrs).forEach(attr =&gt; {
+      // v-xxx=&quot;yyy&quot;
+      const attrName = attr.name;// v-xxx
+      const exp = attr.value;// yyy
+      if (attrName.indexOf(&#39;v-&#39;) === 0) {
+        const dir = attrName.substring(2);
+        this[dir] &amp;&amp; this[dir](node, exp, dir);
+      } else if (attrName === &#39;@click&#39;) {
+        const _this = this;
+        node.addEventListener(&#39;click&#39;, function() {
+          _this.$vm.$metheds[exp].call(_this.$vm);
+        })
+      }
+    })
+  }
+
+  // 更新
+  update(node, exp, dir) {
+    const updator = this[dir + &#39;Updator&#39;];
+    updator &amp;&amp; updator(node, this.$vm[exp]);
+    new Watcher(this.$vm, exp, function(value) {
+      updator &amp;&amp; updator(node, value);
+    });
+  }
+
+  // v-text 更新处理
+  text(node, exp, dir) {
+    this.update(node, exp, dir)
+  }
+  // 修改文本的值
+  textUpdator(node, value) {
+    node.textContent = value;
+  }
+
+  // v-html
+  html(node, exp, dir) {
+    this.update(node, exp, dir)
+  }
+  htmlUpdator(node, value) {
+    node.innerHTML = value;
+  }
+
+  // v-model
+  model(node, exp, dir) {
+    this.update(node, exp, dir);
+    const _this = this;
+    node.addEventListener(&#39;input&#39;, function(InputEvent) {
+      _this.$vm[exp] = InputEvent.target.value;
+    })
+  }
+  modelUpdator(node, value) {
+    node.value = value;
+  }
+
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>原理</tag>
+        <tag>vue</tag>
+        <tag>双向绑定</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue异步更新机制</title>
+    <url>/2022/02/21/vue-asynchronous-update-mechanism/index/</url>
+    <content><![CDATA[<h2 id="vue异步更新机制"><a href="#vue异步更新机制" class="headerlink" title="vue异步更新机制"></a>vue异步更新机制</h2><p>vue中更新dom是异步执行的，只要侦听到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。如果同一个 watcher 被多次触发，只会被推入到队列中一次。（先缓冲，缓冲后再将多次触发属性的最后一次作为promise放入队列；而不是一上来就放队列）</p>
+<p>vue中数据的更新到dom是异步的，数据的异步更新可以理解成一个promise的微任务；并且对同一个属性值进行多次赋值时，只有最后一次赋值会作为一个promise微任务放到更新队列。</p>
+<pre><code class="vue">&lt;template&gt;
+  &lt;div id=&quot;example&quot;&gt;{{message}}&lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+  var vm = new Vue({
+    el: &#39;#example&#39;,
+    data: {
+      message: &#39;123&#39;
+    }
+  })
+
+  Promise.resolve(1).then(value =&gt; {
+    console.log(&quot;xxx&quot;, vm.$el.textContent);     // 第二步输出：123
+  })
+
+  vm.message = &#39;msg&#39; // 更改数据
+
+  Promise.resolve(2).then(value =&gt; {
+    console.log(&quot;测试&quot;, vm.$el.textContent);  // 第三步输出：new
+  })
+
+  vm.message = &#39;new&#39; // 更改数据
+
+  Promise.resolve(3).then(value =&gt; {
+    console.log(&quot;fff&quot;, vm.$el.textContent);         // 第四步输出：new
+  })
+
+  console.log(vm.$el.textContent);          // 第一步输出：123
+&lt;/script&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>VUE</category>
+      </categories>
+      <tags>
+        <tag>VUE</tag>
+        <tag>异步更新机制</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>虚拟列表</title>
+    <url>/2022/08/03/%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/index/</url>
+    <content><![CDATA[<h2 id="虚拟列表"><a href="#虚拟列表" class="headerlink" title="虚拟列表"></a>虚拟列表</h2><pre><code class="vue">&lt;template&gt;
+  &lt;div class=&quot;v-scroll&quot; @scroll.passive=&quot;doScroll&quot; ref=&quot;scrollBox&quot;&gt;
+    &lt;div :style=&quot;blankStyle&quot; style=&quot;height: 100%&quot;&gt;
+      &lt;div v-for=&quot;item in tempSanxins&quot; :key=&quot;item.id&quot; class=&quot;scroll-item&quot;&gt;
+        &lt;span&gt;{{ item.msg }}&lt;/span&gt;
+        &lt;img :src=&quot;item.src&quot; /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+
+&lt;script&gt;
+import { throttle } from &quot;../../utils/tools&quot;;
+export default {
+  data() {
+    return {
+      allSanxins: [], // 所有数据
+      itemHiehgt: 150, // 列表每一项的宽度
+      boxHeight: 0, // 可视区域的高度
+      startIndex: 0, // 元素开始索引
+    };
+  },
+  created() {
+    // 模拟请求数据
+    this.getAllSanxin(30);
+  },
+  mounted() {
+    // 在mounted时获取可视区域的高度
+    this.getScrollBoxHeight();
+    // 监听屏幕变化以及旋转，都要重新获取可视区域的高度
+    window.onresize = this.getScrollBoxHeight;
+    window.onorientationchange = this.getScrollBoxHeight;
+  },
+  methods: {
+    getAllSanxin(count) {
+      // 模拟获取数据
+      const length = this.allSanxins.length;
+      for (let i = 0; i &lt; count; i++) {
+        this.allSanxins.push({
+          id: `sanxin${length + i}`,
+          msg: `我是三心${length + i}号`,
+          // 这里随便选一张图片就行
+          src: require(&quot;../../src/asset/images/sanxin.jpg&quot;).default,
+        });
+      }
+    },
+    // 使用节流，提高性能
+    doScroll: throttle(function () {
+      // 监听可视区域的滚动事件
+      // 公式：~~(滚动的距离 / 列表项 )，就能算出已经滚过了多少个列表项，也就能知道现在的startIndex是多少
+      // 例如我滚动条滚过了160px，那么index就是1，因为此时第一个列表项已经被滚上去了，可视区域里的第一项的索引是1
+      const index = ~~(this.$refs.scrollBox.scrollTop / this.itemHiehgt);
+      if (index === this.startIndex) return;
+      this.startIndex = index;
+      if (this.startIndex + this.itemNum &gt; this.allSanxins.length - 1) {
+        this.getAllSanxin(30);
+      }
+    }, 200),
+    getScrollBoxHeight() {
+      // 获取可视区域的高度
+      this.boxHeight = this.$refs.scrollBox.clientHeight;
+    },
+  },
+  computed: {
+    itemNum() {
+      // 可视区域可展示多少个列表项？ 计算公式：~~(可视化区域高度 / 列表项高度) + 2
+      // ~~是向下取整的运算符，等同于Math.floor()，为什么要 +2 ，是因为可能最上面和最下面的元素都只展示一部分
+      return ~~(this.boxHeight / this.itemHiehgt) + 2;
+    },
+    endIndex() {
+      // endIndex的计算公式：(开始索引 + 可视区域可展示多少个列表项 * 2)
+      // 比如可视区域可展示8个列表项，startIndex是0的话endIndex就是0 + 8 * 2 = 16，startIndex是1的话endIndex就是1 + 8 * 2 = 17，以此类推
+      // 为什么要乘2呢，因为这样的话可以预加载出一页的数据，防止滚动过快，出现暂时白屏现象
+      let index = this.startIndex + this.itemNum * 2;
+      if (!this.allSanxins[index]) {
+         // 到底的情况，比如startIndex是99995，那么endIndex本应该是99995 + 8 * 2 = 10011
+        // 但是列表数据总数只有10000条，此时就需要让endIndex = (列表数据长度 - 1)
+        index = this.allSanxins.length - 1;
+      }
+      return index;
+    },
+    tempSanxins() {
+      //   可视区域展示的截取数据，使用了数组的slice方法，不改变原数组又能截取
+      let startIndex = 0;
+      if (this.startIndex &lt;= this.itemNum) {
+        startIndex = 0;
+      } else {
+        startIndex = this.startIndex + this.itemNum;
+      }
+      return this.allSanxins.slice(startIndex, this.endIndex + 1);
+    },
+    blankStyle() {
+      // 上下方的空白处使用padding来充当
+      let startIndex = 0;
+      if (this.startIndex &lt;= this.itemNum) {
+        startIndex = 0;
+      } else {
+        startIndex = this.startIndex - this.itemNum;
+      }
+      return {
+        // 上方空白的高度计算公式：(开始index * 列表项高度)
+        // 比如你滚过了3个列表项，那么上方空白区高度就是3 * 150 = 450，这样才能假装10000个数据的滚动状态
+        paddingTop: startIndex * this.itemHiehgt + &quot;px&quot;,
+         // 下方空白的高度计算公式：(总数据的个数 - 结束index - 1) * 列表项高度
+        // 例如现在结束index是100，那么下方空白高度就是：(10000 - 100 - 1) * 150 = 1,484,850
+        paddingBottom:
+          (this.allSanxins.length - this.endIndex - 1) * this.itemHiehgt + &quot;px&quot;,
+          // 不要忘了加px哦
+      };
+    },
+  },
+};
+&lt;/script&gt;
+
+&lt;style lang=&quot;scss&quot; scoped&gt;
+.v-scroll {
+  height: 100%;
+  /* padding-bottom: 500px; */
+  overflow: auto;
+
+  .scroll-item {
+    height: 148px;
+    /* width: 100%; */
+    border: 1px solid black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+
+    img {
+      height: 100%;
+    }
+  }
+}
+&lt;/style&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>HTML</category>
+        <category>JS</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>HTML</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端面试题</title>
+    <url>/2022/05/23/%E7%AC%94%E8%AE%B0/index/</url>
+    <content><![CDATA[<h2 id="Vue"><a href="#Vue" class="headerlink" title="Vue"></a>Vue</h2><h3 id="Vue核心特性"><a href="#Vue核心特性" class="headerlink" title="Vue核心特性"></a>Vue核心特性</h3><p>数据驱动（MVVM)<br>MVVM表示的是 Model-View-ViewModel<br>Model：模型层，负责处理业务逻辑以及和服务器端进行交互<br>View：视图层：负责将数据模型转化为UI展示出来，可以简单的理解为HTML页面<br>ViewModel：视图模型层，用来连接Model和View，是Model和View之间的通信桥梁</p>
+<h3 id="Vue和React对比"><a href="#Vue和React对比" class="headerlink" title="Vue和React对比"></a>Vue和React对比</h3><h4 id="相同点"><a href="#相同点" class="headerlink" title="相同点"></a>相同点</h4><p>组件化思想<br>都支持服务器端渲染<br>都有Virtual DOM（虚拟dom）<br>数据驱动视图<br>都有支持native的方案：Vue的weex、React的React native<br>都有自己的构建工具：Vue的vue-cli、React的Create React App</p>
+<h4 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h4><p>数据流向的不同。react从诞生开始就推崇单向数据流，而Vue是双向数据流<br>数据变化的实现原理不同。react使用的是不可变数据，而Vue使用的是可变的数据<br>组件化通信的不同。react中我们通过使用回调函数来进行通信的，而Vue中子组件向父组件传递消息有两种方式：事件和回调函数<br>diff算法不同。react主要使用diff队列保存需要更新哪些DOM，得到patch树，再统一操作批量更新DOM。Vue 使用双向指针，边对比，边更新DOM</p>
+<h3 id="单页应用优缺点"><a href="#单页应用优缺点" class="headerlink" title="单页应用优缺点"></a>单页应用优缺点</h3><p>优点：<br>具有桌面应用的即时性、网站的可移植性和可访问性<br>用户体验好、快，内容的改变不需要重新加载整个页面<br>良好的前后端分离，分工更明确<br>缺点：<br>不利于搜索引擎的抓取<br>首次渲染速度相对较慢</p>
+<h3 id="Vue实例挂载的过程"><a href="#Vue实例挂载的过程" class="headerlink" title="Vue实例挂载的过程"></a>Vue实例挂载的过程</h3><p>new Vue的时候调用会调用_init方法</p>
+<pre><code class="js">initMixin(Vue);     // 定义 _init
+stateMixin(Vue);    // 定义 $set $get $delete $watch 等
+eventsMixin(Vue);   // 定义事件  $on  $once $off $emit
+lifecycleMixin(Vue);// 定义 _update  $forceUpdate  $destroy
+renderMixin(Vue);   // 定义 _render 返回虚拟dom
+</code></pre>
+<p>调用$mount进行页面的挂载<br>挂载的时候主要是通过mountComponent方法<br>定义updateComponent更新函数<br>执行render生成虚拟DOM<br>_update将虚拟DOM生成真实DOM结构，并且渲染到页面中</p>
+<h3 id="Vue生命周期"><a href="#Vue生命周期" class="headerlink" title="Vue生命周期"></a>Vue生命周期</h3><p>beforeCreate    执行时组件实例还未创建，通常用于插件开发中执行一些初始化任务<br>created    组件初始化完毕，各种数据可以使用，常用于异步数据获取<br>beforeMount    未执行渲染、更新，dom未创建<br>mounted    初始化结束，dom已创建，可用于获取访问数据和dom元素<br>beforeUpdate    更新前，可用于获取更新前各种状态<br>updated    更新后，所有状态已是最新<br>beforeDestroy    销毁前，可用于一些定时器或订阅的取消<br>destroyed    组件已销毁，作用同上<br>activated    keep-alive 缓存的组件激活时<br>deactivated    keep-alive 缓存的组件停用时调用<br>errorCaptured    捕获一个来自子孙组件的错误时被调用</p>
+<h3 id="v-if和v-for的优先级是什么？"><a href="#v-if和v-for的优先级是什么？" class="headerlink" title="v-if和v-for的优先级是什么？"></a>v-if和v-for的优先级是什么？</h3><p>v-for优先级比v-if高<br>永远不要把 v-if 和 v-for 同时用在同一个元素上，带来性能方面的浪费（每次渲染都会先循环再进行条件判断）<br>如果避免出现这种情况，则在外层嵌套template（页面渲染不生成dom节点），在这一层进行v-if判断，然后在内部进行v-for循环<br>如果条件出现在循环内部，可通过计算属性computed提前过滤掉那些不需要显示的项</p>
+<h3 id="SPA首屏优化方式"><a href="#SPA首屏优化方式" class="headerlink" title="SPA首屏优化方式"></a>SPA首屏优化方式</h3><p>减小入口文件积: 常用的手段是路由懒加载，把不同路由对应的组件分割成不同的代码块，待路由被请求的时候会单独打包路由，使得入口文件变小，加载速度大大增加<br>静态资源本地缓存<br>UI框架按需加载<br>图片资源的压缩<br>使用SSR<br>开启GZip压缩: </p>
+<pre><code class="js">cnmp i compression-webpack-plugin -D
+
+// 在vue.congig.js中引入并修改webpack配置
+const CompressionPlugin = require(&#39;compression-webpack-plugin&#39;)
+
+configureWebpack: (config) =&gt; {
+    if (process.env.NODE_ENV === &#39;production&#39;) {
+        // 为生产环境修改配置...
+        config.mode = &#39;production&#39;
+        return {
+            plugins: [new CompressionPlugin({
+                test: /\.js$|\.html$|\.css/, //匹配文件名
+                threshold: 10240, //对超过10k的数据进行压缩
+                deleteOriginalAssets: false //是否删除原文件
+            })]
+        }
+    }
+</code></pre>
+<h3 id="为什么data属性是一个函数而不是一个对象？"><a href="#为什么data属性是一个函数而不是一个对象？" class="headerlink" title="为什么data属性是一个函数而不是一个对象？"></a>为什么data属性是一个函数而不是一个对象？</h3><p>组件实例对象data必须为函数，目的是为了防止多个组件实例对象之间共用一个data，产生数据污染。</p>
+<h3 id="动态给vue的data添加一个新的属性时页面不刷新？怎样解决？"><a href="#动态给vue的data添加一个新的属性时页面不刷新？怎样解决？" class="headerlink" title="动态给vue的data添加一个新的属性时页面不刷新？怎样解决？"></a>动态给vue的data添加一个新的属性时页面不刷新？怎样解决？</h3><p>如果为对象添加少量的新属性，可以直接采用Vue.set()<br>如果需要为新对象添加大量的新属性，则通过Object.assign()创建新对象<br>如果你实在不知道怎么操作时，可采取$forceUpdate()进行强制刷新 (不建议)<br>vue3是用过proxy实现数据响应式的，直接动态添加新属性仍可以实现数据响应式</p>
+<h3 id="Vue组件之间的通信方式都有哪些？"><a href="#Vue组件之间的通信方式都有哪些？" class="headerlink" title="Vue组件之间的通信方式都有哪些？"></a>Vue组件之间的通信方式都有哪些？</h3><p>父子关系的组件数据传递选择 props  与 $emit进行传递，也可选择ref<br>兄弟关系的组件数据传递可选择$bus，其次可以选择$parent进行传递<br>祖先与后代组件数据传递可选择attrs与listeners或者 Provide与 Inject<br>复杂关系的组件数据传递可以通过vuex存放共享的变量</p>
+<h3 id="Vue双向绑定"><a href="#Vue双向绑定" class="headerlink" title="Vue双向绑定"></a>Vue双向绑定</h3><p>new Vue()首先执行初始化，通过defineProperty对data执行响应化处理，这个过程发生Observe中<br>同时对模板执行编译，找到其中动态绑定的数据，从data中获取并初始化视图，这个过程发生在Compile中<br>同时定义⼀个更新函数和Watcher，将来对应数据变化时Watcher会调用更新函数<br>由于data的某个key在⼀个视图中可能出现多次，所以每个key都需要⼀个管家Dep来管理多个Watcher<br>将来data中数据⼀旦发生变化，会首先找到对应的Dep，通知所有Watcher执行更新函数</p>
+<h3 id="Vue中的-nextTick有什么作用？"><a href="#Vue中的-nextTick有什么作用？" class="headerlink" title="Vue中的$nextTick有什么作用？"></a>Vue中的$nextTick有什么作用？</h3><p>在下次 DOM 更新循环结束之后执行延迟回调。</p>
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>面试题</tag>
+        <tag>HTML</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue跨域</title>
+    <url>/2022/06/24/vue%E3%80%81vite%E8%B7%A8%E5%9F%9F/index/</url>
+    <content><![CDATA[<h3 id="vue-config-js："><a href="#vue-config-js：" class="headerlink" title="vue.config.js："></a>vue.config.js：</h3><pre><code class="js">devServer: {
+    proxy: {
+      // detail: https://cli.vuejs.org/config/#devserver-proxy
+      &#39;/api&#39;: {
+        target: `http://10.24.4.214:8098/api`,
+        changeOrigin: true,
+        pathRewrite: {
+          &#39;^/api&#39; : &#39;&#39;
+        }
+      }
+    }
+}
+</code></pre>
+<h3 id="vite-config-js："><a href="#vite-config-js：" class="headerlink" title="vite.config.js："></a>vite.config.js：</h3><pre><code class="js">server: {
+    cors: true, // 默认启用并允许任何源
+    open: false, // 在服务器启动时自动在浏览器中打开应用程序
+    //反向代理配置，注意rewrite写法，开始没看文档在这里踩了坑
+    proxy: { // 代理配置
+        &#39;/admin/api&#39;: {
+        target: &#39;http://192.168.1.155&#39;, //代理接口
+        ws: true,
+        changeOrigin: true,
+        rewrite: (path) =&gt; path.replace(/^\/api/, &#39;&#39;),
+        },
+    },
+    host: &#39;192.168.1.123&#39;,
+    port: 80
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>vue</category>
+      </categories>
+      <tags>
+        <tag>vite</tag>
+        <tag>vue</tag>
+        <tag>跨域</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue-property-decorator用法</title>
+    <url>/2022/03/17/vue-property-decorator/index/</url>
+    <content><![CDATA[<h3 id="vue-property-decorator"><a href="#vue-property-decorator" class="headerlink" title="vue-property-decorator"></a>vue-property-decorator</h3><h4 id="data"><a href="#data" class="headerlink" title="data"></a>data</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        ValA: string = &quot;hello world&quot;;
+        ValB: number = 1;
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="computed"><a href="#computed" class="headerlink" title="computed"></a>computed</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        get ValA(){
+            return 1;
+        }
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="Emit"><a href="#Emit" class="headerlink" title="Emit"></a>Emit</h4><p>@Emit()不传参数,那么它触发的事件名就是它所修饰的函数名.<br>@Emit(name: string),里面传递一个字符串,该字符串为要触发的事件名.</p>
+<pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component, Emit} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        mounted(){
+            this.$on(&#39;emit-todo&#39;, function(n) {
+                console.log(n)
+            })
+
+            this.emitTodo(&#39;world&#39;);
+        }
+
+            @Emit()
+        emitTodo(n: string){
+            console.log(&#39;hello&#39;);
+        }
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h4><pre><code class="vue">&lt;script&gt;
+import {Vue, Component, Watch} from &#39;vue-property-decorator&#39;;
+
+@Watch(&#39;child&#39;)
+onChangeValue(newVal: string, oldVal: string){
+    // todo...
+}
+
+@Watch(&#39;person&#39;, {immediate: true, deep: true})
+onChangeValue(newVal: Person, oldVal: Person){
+    // todo...
+}
+&lt;/script&gt;
+</code></pre>
+<h4 id="Prop"><a href="#Prop" class="headerlink" title="Prop"></a>Prop</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component, Prop} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        @Prop(Number) propA!: number;
+        @Prop({default: &#39;default value&#39;}) propB!: string;
+        @propC([String, Boolean]) propC: string | boolean;
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="Mixins"><a href="#Mixins" class="headerlink" title="Mixins"></a>Mixins</h4><p>一种是vue-class-component提供的.</p>
+<pre><code class="vue">&lt;script&gt;
+import  Component  {mixins}  from &#39;vue-class-component&#39;;
+import myMixins from &#39;mixins.ts&#39;;
+
+@Component
+// 直接extends myMinxins 也可以正常运行
+export class myComponent extends mixins(myMixins) {
+      created(){
+          console.log(this.value) // =&gt; Hello
+    }
+}
+&lt;/script&gt;
+</code></pre>
+<p>第二种方式是在@Component中混入.</p>
+<pre><code class="vue">&lt;script&gt;
+import { Vue, Component, Prop } from &#39;vue-property-decorator&#39;;
+import myMixins from &#39;@static/js/mixins&#39;;
+
+@Component({
+    mixins: [myMixins]
+})
+export default class myComponent extends Vue{
+    created(){
+        console.log(this.value) // =&gt; Hello
+    }
+}
+&lt;/script&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>vue</tag>
+        <tag>vue-property-decorator</tag>
+        <tag>ts</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue组件通信、插槽</title>
+    <url>/2022/02/23/vue%E7%BB%84%E4%BB%B6%E9%80%9A%E4%BF%A1%E3%80%81%E6%8F%92%E6%A7%BD/index/</url>
+    <content><![CDATA[<h2 id="组件通信"><a href="#组件通信" class="headerlink" title="组件通信"></a>组件通信</h2><h3 id="父-gt-子"><a href="#父-gt-子" class="headerlink" title="父 =&gt; 子"></a>父 =&gt; 子</h3><p> props</p>
+<pre><code class="js">// child
+props: { msg: String }
+
+// parent
+&lt;helloWorld msg=&quot;welcome&quot; /&gt;
+</code></pre>
+<p> $refs</p>
+<pre><code class="js">// parent
+&lt;helloWorld msg=&quot;welcome&quot; ref=&quot;helloWorld&quot; /&gt;
+this.$refs.helloWorld.xx = &#39;xxx&#39;
+</code></pre>
+<p> $children</p>
+<pre><code class="js">// parent $children不保证子组件顺序
+this.$children[0].xx = &#39;xxx&#39;
+</code></pre>
+<h3 id="子-gt-父"><a href="#子-gt-父" class="headerlink" title="子 =&gt; 父"></a>子 =&gt; 父</h3><p> $emit</p>
+<pre><code class="js">// child
+this.$emit(&#39;add&#39;, &#39;msg&#39;)
+
+// parent
+&lt;helloWorld @add=&quot;add&quot; /&gt;
+</code></pre>
+<h3 id="兄弟组件通信"><a href="#兄弟组件通信" class="headerlink" title="兄弟组件通信"></a>兄弟组件通信</h3><p> $parent / $root</p>
+<pre><code class="js">// brother1 监听
+this.$parent.$on(&#39;foo&#39;, &#39;msg&#39;)
+// brother1 派发
+this.$parent.$emit(&#39;foo&#39;)
+</code></pre>
+<h3 id="祖先后代组件通信"><a href="#祖先后代组件通信" class="headerlink" title="祖先后代组件通信"></a>祖先后代组件通信</h3><p>注：官方不建议项目使用，并且不建议修改</p>
+<pre><code class="js">// 祖
+provide() {
+  return {
+    foo: &#39;foo&#39;
+  }
+}
+
+// 后
+inject: [&#39;foo&#39;]
+</code></pre>
+<h3 id="任意两个组件通信"><a href="#任意两个组件通信" class="headerlink" title="任意两个组件通信"></a>任意两个组件通信</h3><pre><code class="js">Vue.prototype.$bus = new Vue()
+
+// child1
+this.$bus.$on(&#39;foo&#39;, handle)
+// child2
+this.$bus.$emit(&#39;foo&#39;, &#39;msg&#39;)
+</code></pre>
+<h2 id="插槽"><a href="#插槽" class="headerlink" title="插槽"></a>插槽</h2><pre><code class="js">// 匿名插槽
+&lt;div&gt;
+  &lt;slot&gt;&lt;/slot&gt;
+&lt;/div&gt;
+&lt;helloWorld&gt;
+  &lt;template v-slot:default&gt;&lt;/template&gt;
+&lt;/helloWorld&gt;
+
+// 具名插槽
+&lt;div&gt;
+  &lt;slot name=&quot;main&quot;&gt;&lt;/slot&gt;
+&lt;/div&gt;
+&lt;helloWorld&gt;
+  &lt;template v-slot:main&gt;&lt;/template&gt;
+&lt;/helloWorld&gt;
+
+// 作用域插槽
+&lt;div&gt;
+  &lt;slot name=&quot;main&quot; msg=&quot;msg&quot;&gt;&lt;/slot&gt;
+&lt;/div&gt;
+&lt;helloWorld&gt;
+  &lt;template v-slot:main={msg}&gt;{{ msg }}&lt;/template&gt;
+&lt;/helloWorld&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>vue</tag>
+        <tag>组件通信</tag>
+        <tag>插槽</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端面试题</title>
+    <url>/2022/05/23/%E5%89%8D%E7%AB%AF%E9%A2%98%E5%BA%93/index/</url>
+    <content><![CDATA[<h3 id="1、html5的语义化的好处是什么"><a href="#1、html5的语义化的好处是什么" class="headerlink" title="1、html5的语义化的好处是什么?"></a>1、html5的语义化的好处是什么?</h3><p>语义化更具可读性，便于团队开发和维护，同时让浏览器的爬虫和机器很好地解析<br>例：header、nav、article、section、aside、footer等</p>
+<h3 id="2、css3实现毛玻璃背景效果怎么实现"><a href="#2、css3实现毛玻璃背景效果怎么实现" class="headerlink" title="2、css3实现毛玻璃背景效果怎么实现?"></a>2、css3实现毛玻璃背景效果怎么实现?</h3><p>高斯模糊：filter: blur(5px);<br>亮度：filter: brightness(200%);<br>对比度：filter: contrast(200%);<br>阴影：filter: drop-shadow(8px 8px 10px red);<br>将图像转换为灰度图像：filter: grayscale(50%);<br>色相旋转：filter: hue-rotate(90deg);<br>反转输入图像：filter: invert(100%);<br>透明程度：filter: opacity(30%);<br>转换图像饱和度：filter: saturate(800%);<br>将图像转换为深褐色：filter: sepia(100%);<br>使用多个滤镜，每个滤镜使用空格分隔。<br>注意: 顺序是非常重要的 (例如使用 grayscale() 后再使用 sepia()将产生一个完整的灰度图片)。</p>
+<h3 id="3、Promise的then方法为什么能链式调用"><a href="#3、Promise的then方法为什么能链式调用" class="headerlink" title="3、Promise的then方法为什么能链式调用?"></a>3、Promise的then方法为什么能链式调用?</h3><p>then ()方法的作用是Promise实例添加解决（fulfillment）和拒绝（rejection）状态的回调函数。<br>then ()方法会返回一个 新 的Promise实例，所以then ()方法后面可以继续跟另一个then ()方法进行链式调用。</p>
+<h3 id="4、async-await是怎么做到串行执行异步操作的"><a href="#4、async-await是怎么做到串行执行异步操作的" class="headerlink" title="4、async/ await是怎么做到串行执行异步操作的?"></a>4、async/ await是怎么做到串行执行异步操作的?</h3><h3 id="5、https比http安全在哪呢"><a href="#5、https比http安全在哪呢" class="headerlink" title="5、https比http安全在哪呢?"></a>5、https比http安全在哪呢?</h3><p>HTTPS 是我们常见的 HTTP 协议与某个加密协议的混合体，也就是 HTTP+S。这个 S 可以是 TLS（安全传输层协议）、也可以是 SSL（安全套接层）。</p>
+<h3 id="6、快速排序和冒泡排序的时间复杂度是多少"><a href="#6、快速排序和冒泡排序的时间复杂度是多少" class="headerlink" title="6、快速排序和冒泡排序的时间复杂度是多少?"></a>6、快速排序和冒泡排序的时间复杂度是多少?</h3><h3 id="7、vue中v-model是语法糖，不用v-mode用什么可以替代"><a href="#7、vue中v-model是语法糖，不用v-mode用什么可以替代" class="headerlink" title="7、vue中v-model是语法糖，不用v-mode用什么可以替代?"></a>7、vue中v-model是语法糖，不用v-mode用什么可以替代?</h3><p>:value=”name” @input=”name = $event.target.value”</p>
+<h3 id="8、vue组件销毁时，所有自定义事件和原生事件都会跟着解绑吗？"><a href="#8、vue组件销毁时，所有自定义事件和原生事件都会跟着解绑吗？" class="headerlink" title="8、vue组件销毁时，所有自定义事件和原生事件都会跟着解绑吗？"></a>8、vue组件销毁时，所有自定义事件和原生事件都会跟着解绑吗？</h3><p>只要是挂载在实例上的事件都会被销毁。<br>组件销毁只会销毁与实例相关的事件，如果将事件绑在文档或文档中其他与实例不相关的节点上是必须主动取消监听的，因为该事件与实例无关，因此不会自动销毁。</p>
+<h3 id="9、vue3是怎么解决vue2的响应式缺陷的"><a href="#9、vue3是怎么解决vue2的响应式缺陷的" class="headerlink" title="9、vue3是怎么解决vue2的响应式缺陷的?"></a>9、vue3是怎么解决vue2的响应式缺陷的?</h3><p>Object.defineProperty的缺陷：<br>1、Object.defineProperty无法监听数组的变化<br>2、Object.defineProperty只能劫持对象的属性,因此我们需要对每个对象的每个属性进行遍历，如果属性值也是对象那么需要深度遍历，性能不高<br>vue3改用proxy，是为了解决vue2使用defineProperty的缺陷：<br>1、可以监听到数组的变化。<br>2、proxy可以监听对象而非属性。对该对象的访问，都必须先通过proxy这层拦截，因此提供了一种机制，可以对外界的访问进行过滤和改写。Proxy直接可以劫持整个对象,并返回一个新对象。提升了性能。</p>
+<h3 id="10、nexttick是什么任务-为什么优先是微任务"><a href="#10、nexttick是什么任务-为什么优先是微任务" class="headerlink" title="10、nexttick是什么任务?为什么优先是微任务?"></a>10、nexttick是什么任务?为什么优先是微任务?</h3><p>微任务。<br>script本来就是一个宏任务，所以会先执行script这个宏任务，结束该宏任务前会先执行完该宏任务中的所有微任务，执行完微任务，再去循环调用执行下一个宏任务。</p>
+<h3 id="11、JavaScript不同数据类型是怎么一个存储方式"><a href="#11、JavaScript不同数据类型是怎么一个存储方式" class="headerlink" title="11、JavaScript不同数据类型是怎么一个存储方式?"></a>11、JavaScript不同数据类型是怎么一个存储方式?</h3><p>声明变量时不同的内存地址分配：<br>    简单类型的值存放在栈中，在栈中存放的是对应的值<br>    引用类型对应的值存储在堆中，在栈中存放的是指向堆内存的地址<br>不同的类型数据导致赋值变量时的不同：<br>    简单类型赋值，是生成相同的值，两个对象对应不同的地址<br>    复杂类型赋值，是将保存对象的内存地址赋值给另一个变量。也就是两个变量指向堆内存中同一个对象</p>
+<h3 id="12、一个超长字符串能存在栈内存里面吗"><a href="#12、一个超长字符串能存在栈内存里面吗" class="headerlink" title="12、一个超长字符串能存在栈内存里面吗?"></a>12、一个超长字符串能存在栈内存里面吗?</h3><p>V8默认栈内存是984Kib</p>
+<h3 id="13、赋值、浅拷贝、深拷贝的区别"><a href="#13、赋值、浅拷贝、深拷贝的区别" class="headerlink" title="13、赋值、浅拷贝、深拷贝的区别?"></a>13、赋值、浅拷贝、深拷贝的区别?</h3><p>赋值：<br>    基本数据类型：赋值之后两个变量互不影响<br>    引用数据类型：两个变量具有相同的引用，指向同一个对象，相互之间有影响<br>浅拷贝：拷贝第一层的基本类型值，以及第一层的引用类型地址。<br>深拷贝：深拷贝会拷贝所有的属性，并拷贝属性指向的动态分配的内存。当对象和它所引用的对象一起拷贝时即发生深拷贝。深拷贝相比于浅拷贝速度较慢并且花销较大。</p>
+<h3 id="14、webworker开一个子线程，那怎么监听子线程挂了"><a href="#14、webworker开一个子线程，那怎么监听子线程挂了" class="headerlink" title="14、webworker开一个子线程，那怎么监听子线程挂了"></a>14、webworker开一个子线程，那怎么监听子线程挂了</h3><h3 id="15、webpack的style-loader和css-loader的区别"><a href="#15、webpack的style-loader和css-loader的区别" class="headerlink" title="15、webpack的style-loader和css-loader的区别?"></a>15、webpack的style-loader和css-loader的区别?</h3><p>css-loader 会对 @import 和 url() 进行处理，就像 js 解析 import/require() 一样，默认生成一个数组存放存放处理后的样式字符串，并将其导出。<br>style-loader的作用是把 CSS 插入到 DOM 中，就是处理css-loader导出的模块数组，然后将样式通过style标签或者其他形式插入到DOM中。</p>
+<h3 id="16、webpack如何配置typescript的打包"><a href="#16、webpack如何配置typescript的打包" class="headerlink" title="16、webpack如何配置typescript的打包?"></a>16、webpack如何配置typescript的打包?</h3><p>安装配置ts-loader，根目录下创建一个’tsconfig.json’的文件</p>
+<h3 id="17、webpack的三种hash值配置的区别"><a href="#17、webpack的三种hash值配置的区别" class="headerlink" title="17、webpack的三种hash值配置的区别?"></a>17、webpack的三种hash值配置的区别?</h3><p>hash所有文件的哈希值都相同；chunkhash根据不同的入口文件进行依赖文件解析，构建对应的chunk，生成对应的哈希值；contenthash计算与文件内容本省有关，主要用于CSS抽离CSS文件。</p>
+<h3 id="18、如何计算白屏时间呢"><a href="#18、如何计算白屏时间呢" class="headerlink" title="18、如何计算白屏时间呢?"></a>18、如何计算白屏时间呢?</h3><h3 id="19、本地服务代理为什么能解决跨域问题-跨域问题的其他解决方法了解过吗"><a href="#19、本地服务代理为什么能解决跨域问题-跨域问题的其他解决方法了解过吗" class="headerlink" title="19、本地服务代理为什么能解决跨域问题?跨域问题的其他解决方法了解过吗?"></a>19、本地服务代理为什么能解决跨域问题?跨域问题的其他解决方法了解过吗?</h3><h3 id="20、vue中二次封装时数据往下一层一层传递很麻烦，怎么才能一次性传下去"><a href="#20、vue中二次封装时数据往下一层一层传递很麻烦，怎么才能一次性传下去" class="headerlink" title="20、vue中二次封装时数据往下一层一层传递很麻烦，怎么才能一次性传下去?"></a>20、vue中二次封装时数据往下一层一层传递很麻烦，怎么才能一次性传下去?</h3><p>v-bind=”$attrs” 和 v-on=”$listeners”</p>
+<h3 id="21、vuex是怎么做到将数据注入到每一个组件里的"><a href="#21、vuex是怎么做到将数据注入到每一个组件里的" class="headerlink" title="21、vuex是怎么做到将数据注入到每一个组件里的?"></a>21、vuex是怎么做到将数据注入到每一个组件里的?</h3><p>通过vue.use(Vuex)将Vuex注入到vue根组件<br>如果插件是一个对象，必须提供 install 方法。如果插件是一个函数，它会被作为 install 方法。install 方法调用时，会将 Vue 作为参数传入。</p>
+<h3 id="22、vite很快，那他为什么快呢-有了解过吗"><a href="#22、vite很快，那他为什么快呢-有了解过吗" class="headerlink" title="22、vite很快，那他为什么快呢?有了解过吗?"></a>22、vite很快，那他为什么快呢?有了解过吗?</h3><p>webpack会先打包，然后启动开发服务器，请求服务器时直接给予打包结果。<br>而vite是直接启动开发服务器，请求哪个模块再对该模块进行实时编译。<br>在HMR（热更新）方面，当改动了一个模块后，仅需让浏览器重新请求该模块即可，不像webpack那样需要把该模块的相关依赖模块全部编译一次，效率更高。<br>当需要打包到生产环境时，vite使用传统的rollup进行打包，因此，vite的主要优势在开发阶段。另外，由于vite利用的是ES Module，因此在代码中（除了vite.config.js里面，这里是node的执行环境）不可以使用CommonJS。</p>
+<h3 id="23、axios拦截器如何拦截请求错误或者响应错误"><a href="#23、axios拦截器如何拦截请求错误或者响应错误" class="headerlink" title="23、axios拦截器如何拦截请求错误或者响应错误"></a>23、axios拦截器如何拦截请求错误或者响应错误</h3><h3 id="24、axios这个库是如何区分浏览器环境和node环境的"><a href="#24、axios这个库是如何区分浏览器环境和node环境的" class="headerlink" title="24、axios这个库是如何区分浏览器环境和node环境的?"></a>24、axios这个库是如何区分浏览器环境和node环境的?</h3><p>if(typeof window === ‘object’) {<br>    //  window只存在于浏览器端<br>}else if(Object.prototype.toString.call(process) === ‘[object process]’) {<br>    //  判断process<br>}</p>
+<h3 id="25、项目中哪些模块是你主导的-简单聊聊吧"><a href="#25、项目中哪些模块是你主导的-简单聊聊吧" class="headerlink" title="25、项目中哪些模块是你主导的?简单聊聊吧"></a>25、项目中哪些模块是你主导的?简单聊聊吧</h3><h3 id="26、你觉得搭建一个组件库需要注意哪些事"><a href="#26、你觉得搭建一个组件库需要注意哪些事" class="headerlink" title="26、你觉得搭建一个组件库需要注意哪些事?"></a>26、你觉得搭建一个组件库需要注意哪些事?<code></code></h3><h3 id="27、有没有在项目中做过换肤的业务"><a href="#27、有没有在项目中做过换肤的业务" class="headerlink" title="27、有没有在项目中做过换肤的业务?"></a>27、有没有在项目中做过换肤的业务?</h3><h3 id="28、有没有在项目中做过国际化语言切换"><a href="#28、有没有在项目中做过国际化语言切换" class="headerlink" title="28、有没有在项目中做过国际化语言切换?"></a>28、有没有在项目中做过国际化语言切换?</h3><h3 id="29、DOMContentLoaded和load的区别"><a href="#29、DOMContentLoaded和load的区别" class="headerlink" title="29、DOMContentLoaded和load的区别?"></a>29、DOMContentLoaded和load的区别?</h3><p>当初始的 HTML 文档被完全加载和解析完成之后，DOMContentLoaded 事件被触发，而无需等待样式表、图像和子框架的完成加载。<br>load 仅用于检测一个完全加载的页面，页面的html、css、js、图片等资源都已经加载完之后才会触发 load 事件。</p>
+<h3 id="30、强缓存和协商缓存的区别"><a href="#30、强缓存和协商缓存的区别" class="headerlink" title="30、强缓存和协商缓存的区别?"></a>30、强缓存和协商缓存的区别?</h3><p>强缓存：不会向服务器发送请求，直接从缓存中读取资源，在chrome控制台的network选项中可以看到该请求返回200的状态码;<br>协商缓存：向服务器发送请求，服务器会根据这个请求的request header的一些参数来判断是否命中协商缓存，如果命中，则返回304状态码并带上新的response header通知浏览器从缓存中读取资源；</p>
+<h3 id="element中select的change方法如何传多个参数？"><a href="#element中select的change方法如何传多个参数？" class="headerlink" title="element中select的change方法如何传多个参数？"></a>element中select的change方法如何传多个参数？</h3><p>方法一：@change=”dataChange($event, 123)<br>方法二：@change=”((val)=&gt;{dataChange(val, 123)})</p>
+<h3 id="前端工程化、模块化、组件化开发的理解"><a href="#前端工程化、模块化、组件化开发的理解" class="headerlink" title="前端工程化、模块化、组件化开发的理解"></a>前端工程化、模块化、组件化开发的理解</h3><p>工程化: 将前端项目当成一项系统工程进行分析、组织和构建从而达到项目结构清晰、分工明确、团队配合默契、开发效率提高的目的<br>模块化: 模块化就是将一个大文件拆分成相互依赖的小文件，再进行统一的拼装和加载。只有这样，才有多人协作的可能<br>组件化: 模块化只是在文件层面上，对代码或资源的拆分；而组件化是在设计层面上，对UI（用户界面）的拆分。从UI拆分下来的每个包含模板(HTML)+样式(CSS)+逻辑(JS)功能完备的结构单元，我们称之为组件。</p>
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+        <tag>面试题</tag>
+        <tag>HTML</tag>
+      </tags>
+  </entry>
+</search>

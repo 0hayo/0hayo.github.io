@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>0hayo</title>
+  
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="/"/>
+  <updated>2022-08-04T06:36:08.173Z</updated>
+  <id>/</id>
+  
+  <author>
+    <name>0hayo</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>vue cli 开启gzip压缩 nginx开启gzip</title>
+    <link href="/2022/08/04/vue%20cli%20%E5%BC%80%E5%90%AFgzip%E5%8E%8B%E7%BC%A9%20nginx%E5%BC%80%E5%90%AFgzip/index/"/>
+    <id>/2022/08/04/vue cli 开启gzip压缩 nginx开启gzip/index/</id>
+    <published>2022-08-04T06:32:17.000Z</published>
+    <updated>2022-08-04T06:36:08.173Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="VUE" scheme="/categories/VUE/"/>
+    
+      <category term="webpack" scheme="/categories/VUE/webpack/"/>
+    
+    
+      <category term="VUE" scheme="/tags/VUE/"/>
+    
+      <category term="webpack" scheme="/tags/webpack/"/>
+    
+      <category term="gzip" scheme="/tags/gzip/"/>
+    
+      <category term="nginx" scheme="/tags/nginx/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>虚拟列表</title>
+    <link href="/2022/08/03/%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/index/"/>
+    <id>/2022/08/03/虚拟列表/index/</id>
+    <published>2022-08-03T06:28:17.000Z</published>
+    <updated>2022-08-03T06:29:11.360Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="HTML" scheme="/categories/HTML/"/>
+    
+      <category term="JS" scheme="/categories/HTML/JS/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="HTML" scheme="/tags/HTML/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vue跨域</title>
+    <link href="/2022/06/24/vue%E3%80%81vite%E8%B7%A8%E5%9F%9F/index/"/>
+    <id>/2022/06/24/vue、vite跨域/index/</id>
+    <published>2022-06-24T01:33:17.000Z</published>
+    <updated>2022-06-24T01:35:36.336Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="vue" scheme="/categories/vue/"/>
+    
+    
+      <category term="vite" scheme="/tags/vite/"/>
+    
+      <category term="vue" scheme="/tags/vue/"/>
+    
+      <category term="跨域" scheme="/tags/%E8%B7%A8%E5%9F%9F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>前端面试题</title>
+    <link href="/2022/05/23/%E5%89%8D%E7%AB%AF%E9%A2%98%E5%BA%93/index/"/>
+    <id>/2022/05/23/前端题库/index/</id>
+    <published>2022-05-23T03:10:17.000Z</published>
+    <updated>2022-09-21T02:21:27.956Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="JS" scheme="/categories/JS/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="面试题" scheme="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/"/>
+    
+      <category term="HTML" scheme="/tags/HTML/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>前端面试题</title>
+    <link href="/2022/05/23/%E7%AC%94%E8%AE%B0/index/"/>
+    <id>/2022/05/23/笔记/index/</id>
+    <published>2022-05-23T03:10:17.000Z</published>
+    <updated>2022-07-11T01:43:22.809Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="JS" scheme="/categories/JS/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="面试题" scheme="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/"/>
+    
+      <category term="HTML" scheme="/tags/HTML/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vite配置全局svg图标</title>
+    <link href="/2022/04/07/svg-vite/index/"/>
+    <id>/2022/04/07/svg-vite/index/</id>
+    <published>2022-04-07T02:27:17.000Z</published>
+    <updated>2022-04-14T08:41:05.647Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="vite" scheme="/tags/vite/"/>
+    
+      <category term="svg" scheme="/tags/svg/"/>
+    
+      <category term="图标" scheme="/tags/%E5%9B%BE%E6%A0%87/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>electron（send、sendSync、invoke）主进程与渲染进程通信的区别</title>
+    <link href="/2022/04/06/electron-ipc/index/"/>
+    <id>/2022/04/06/electron-ipc/index/</id>
+    <published>2022-04-06T09:37:17.000Z</published>
+    <updated>2022-04-14T08:41:05.646Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="electron" scheme="/tags/electron/"/>
+    
+      <category term="通信" scheme="/tags/%E9%80%9A%E4%BF%A1/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vue-property-decorator用法</title>
+    <link href="/2022/03/17/vue-property-decorator/index/"/>
+    <id>/2022/03/17/vue-property-decorator/index/</id>
+    <published>2022-03-17T07:33:17.000Z</published>
+    <updated>2022-04-14T08:41:05.648Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="vue" scheme="/tags/vue/"/>
+    
+      <category term="vue-property-decorator" scheme="/tags/vue-property-decorator/"/>
+    
+      <category term="ts" scheme="/tags/ts/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>webpack配置全局svg图标</title>
+    <link href="/2022/03/17/svg-webpack/index/"/>
+    <id>/2022/03/17/svg-webpack/index/</id>
+    <published>2022-03-17T07:19:17.000Z</published>
+    <updated>2022-04-14T08:41:05.647Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="svg" scheme="/tags/svg/"/>
+    
+      <category term="图标" scheme="/tags/%E5%9B%BE%E6%A0%87/"/>
+    
+      <category term="webpack" scheme="/tags/webpack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>简单实现vue双向绑定以及v-text、v-model、v-html、@click、插值表达式</title>
+    <link href="/2022/03/11/vuejs/index/"/>
+    <id>/2022/03/11/vuejs/index/</id>
+    <published>2022-03-11T08:30:17.000Z</published>
+    <updated>2022-04-14T08:41:05.648Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="原理" scheme="/tags/%E5%8E%9F%E7%90%86/"/>
+    
+      <category term="vue" scheme="/tags/vue/"/>
+    
+      <category term="双向绑定" scheme="/tags/%E5%8F%8C%E5%90%91%E7%BB%91%E5%AE%9A/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>手写notice弹窗组件</title>
+    <link href="/2022/02/25/notice-component/index/"/>
+    <id>/2022/02/25/notice-component/index/</id>
+    <published>2022-02-25T09:56:17.000Z</published>
+    <updated>2022-04-14T08:41:05.647Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="notice弹窗组件" scheme="/categories/notice%E5%BC%B9%E7%AA%97%E7%BB%84%E4%BB%B6/"/>
+    
+    
+      <category term="notice" scheme="/tags/notice/"/>
+    
+      <category term="弹窗" scheme="/tags/%E5%BC%B9%E7%AA%97/"/>
+    
+      <category term="组件" scheme="/tags/%E7%BB%84%E4%BB%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>手写form组件</title>
+    <link href="/2022/02/25/form-component/index/"/>
+    <id>/2022/02/25/form-component/index/</id>
+    <published>2022-02-25T06:04:17.000Z</published>
+    <updated>2022-04-14T08:41:05.646Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="form" scheme="/categories/form/"/>
+    
+    
+      <category term="组件" scheme="/tags/%E7%BB%84%E4%BB%B6/"/>
+    
+      <category term="form" scheme="/tags/form/"/>
+    
+      <category term="表单验证" scheme="/tags/%E8%A1%A8%E5%8D%95%E9%AA%8C%E8%AF%81/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vue组件通信、插槽</title>
+    <link href="/2022/02/23/vue%E7%BB%84%E4%BB%B6%E9%80%9A%E4%BF%A1%E3%80%81%E6%8F%92%E6%A7%BD/index/"/>
+    <id>/2022/02/23/vue组件通信、插槽/index/</id>
+    <published>2022-02-23T06:58:17.000Z</published>
+    <updated>2022-06-24T01:26:48.831Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="vue" scheme="/tags/vue/"/>
+    
+      <category term="组件通信" scheme="/tags/%E7%BB%84%E4%BB%B6%E9%80%9A%E4%BF%A1/"/>
+    
+      <category term="插槽" scheme="/tags/%E6%8F%92%E6%A7%BD/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>数组遍历的实现</title>
+    <link href="/2022/02/23/array-traverse-rewrite/index/"/>
+    <id>/2022/02/23/array-traverse-rewrite/index/</id>
+    <published>2022-02-23T02:18:17.000Z</published>
+    <updated>2022-04-14T08:41:05.646Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="JS" scheme="/categories/JS/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="Array" scheme="/tags/Array/"/>
+    
+      <category term="遍历" scheme="/tags/%E9%81%8D%E5%8E%86/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Axios拦截请求封装</title>
+    <link href="/2022/02/22/axios/index/"/>
+    <id>/2022/02/22/axios/index/</id>
+    <published>2022-02-22T06:57:17.000Z</published>
+    <updated>2022-04-14T08:41:05.646Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="Axios" scheme="/categories/Axios/"/>
+    
+    
+      <category term="Axios" scheme="/tags/Axios/"/>
+    
+      <category term="Axios拦截" scheme="/tags/Axios%E6%8B%A6%E6%88%AA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vue异步更新机制</title>
+    <link href="/2022/02/21/vue-asynchronous-update-mechanism/index/"/>
+    <id>/2022/02/21/vue-asynchronous-update-mechanism/index/</id>
+    <published>2022-02-21T02:16:17.000Z</published>
+    <updated>2022-04-14T08:41:05.648Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="VUE" scheme="/categories/VUE/"/>
+    
+    
+      <category term="VUE" scheme="/tags/VUE/"/>
+    
+      <category term="异步更新机制" scheme="/tags/%E5%BC%82%E6%AD%A5%E6%9B%B4%E6%96%B0%E6%9C%BA%E5%88%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>前端 JS 编程题（应用类）</title>
+    <link href="/2021/11/16/js-application/index/"/>
+    <id>/2021/11/16/js-application/index/</id>
+    <published>2021-11-16T03:30:45.000Z</published>
+    <updated>2022-04-14T08:41:05.646Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="前端" scheme="/categories/%E7%AC%94%E8%AE%B0/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="前端" scheme="/tags/%E5%89%8D%E7%AB%AF/"/>
+    
+      <category term="面试题" scheme="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/"/>
+    
+      <category term="应用" scheme="/tags/%E5%BA%94%E7%94%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>前端 JS 编程题（原理类）</title>
+    <link href="/2021/11/14/js-principle/index/"/>
+    <id>/2021/11/14/js-principle/index/</id>
+    <published>2021-11-14T08:42:45.000Z</published>
+    <updated>2022-04-14T08:41:05.647Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="前端" scheme="/categories/%E7%AC%94%E8%AE%B0/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="前端" scheme="/tags/%E5%89%8D%E7%AB%AF/"/>
+    
+      <category term="面试题" scheme="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/"/>
+    
+      <category term="原理" scheme="/tags/%E5%8E%9F%E7%90%86/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>前端 JS 编程题（算法类）</title>
+    <link href="/2021/11/14/js-algorithm/index/"/>
+    <id>/2021/11/14/js-algorithm/index/</id>
+    <published>2021-11-14T06:42:45.000Z</published>
+    <updated>2022-04-14T08:41:05.646Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="笔记" scheme="/categories/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="前端" scheme="/categories/%E7%AC%94%E8%AE%B0/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="JS" scheme="/tags/JS/"/>
+    
+      <category term="前端" scheme="/tags/%E5%89%8D%E7%AB%AF/"/>
+    
+      <category term="算法" scheme="/tags/%E7%AE%97%E6%B3%95/"/>
+    
+      <category term="面试题" scheme="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Git与Github进行SSH连接</title>
+    <link href="/2020/04/14/git-github-ssh/index/"/>
+    <id>/2020/04/14/git-github-ssh/index/</id>
+    <published>2020-04-14T08:43:17.000Z</published>
+    <updated>2022-05-05T06:10:07.476Z</updated>
+    
+    <summary type="html">
+    
+      站在自己所热爱的世界里！
+    
+    </summary>
+    
+      <category term="git" scheme="/categories/git/"/>
+    
+      <category term="github" scheme="/categories/git/github/"/>
+    
+      <category term="ssh" scheme="/categories/git/github/ssh/"/>
+    
+    
+      <category term="git" scheme="/tags/git/"/>
+    
+      <category term="github" scheme="/tags/github/"/>
+    
+      <category term="ssh" scheme="/tags/ssh/"/>
+    
+  </entry>
+  
+</feed>
