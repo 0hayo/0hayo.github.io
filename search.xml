@@ -1,83 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Axios拦截请求封装</title>
-    <url>/2022/02/22/axios/index/</url>
-    <content><![CDATA[<h2 id="Axios拦截请求封装"><a href="#Axios拦截请求封装" class="headerlink" title="Axios拦截请求封装"></a>Axios拦截请求封装</h2><p>请求封装</p>
-<pre><code class="js">import { ApiError } from &#39;@/structure/Request&#39;;
-import { Config } from &#39;@/utils/Config&#39;;
-import axios, { AxiosRequestConfig } from &#39;axios&#39;;
-
-const service = axios.create({
-  baseURL: Config.API_ADDRESS,
-  timeout: Config.TIME_OUT
-});
-
-// 请求拦截器
-service.interceptors.request.use(
-  (config: AxiosRequestConfig) =&gt; {
-    config.headers[&#39;token&#39;] = Config.getToken() || &#39;&#39;;
-    return config;
-  },
-  error =&gt; {
-    Promise.reject(error);
-  }
-);
-
-// 响应拦截器
-service.interceptors.response.use(
-  response =&gt; {
-    const data = response.data;
-    if (data.code !== 200) {
-      switch (data.code) {
-        case 400:
-          return Promise.reject(ApiError.BadRequest);
-        case 401:
-          return Promise.reject(ApiError.Unauthorized);
-        case 403:
-          return Promise.reject(ApiError.Forbidden);
-        case 404:
-          return Promise.reject(ApiError.ResourceNotFound);
-        case 500:
-          return Promise.reject(ApiError.ServerSideError);
-        case 1001:
-          return Promise.reject(ApiError.CustomError.from(data.msg));
-        default:
-          return Promise.reject(ApiError.Unexpected.from(data.msg));
-      }
-    } else {
-      return data;
-    }
-  },
-  error =&gt; {
-    return Promise.reject(error);
-  }
-);
-
-export default service;
-
-</code></pre>
-<p>调用封装</p>
-<pre><code class="js">import { ApiResponse } from &#39;@/structure/Request&#39;;
-import service from &#39;@/utils/service&#39;;
-
-export class CommonApi {
-  public static async getTimestamp(): Promise&lt;number&gt; {
-    const response = await service.get&lt;void, ApiResponse&lt;number&gt;&gt;(&#39;/utils/getSystemTime&#39;);
-    return response.result;
-  }
-}
-</code></pre>
-]]></content>
-      <categories>
-        <category>Axios</category>
-      </categories>
-      <tags>
-        <tag>Axios</tag>
-        <tag>Axios拦截</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数组遍历的实现</title>
     <url>/2022/02/23/array-traverse-rewrite/index/</url>
     <content><![CDATA[<h2 id="实现数组的filter方法"><a href="#实现数组的filter方法" class="headerlink" title="实现数组的filter方法"></a>实现数组的filter方法</h2><pre><code class="js">Array.prototype.filter =&gt; (fn) {
@@ -342,171 +265,161 @@ export default {
       </tags>
   </entry>
   <entry>
-    <title>前端 JS 编程题（应用类）</title>
-    <url>/2021/11/16/js-application/index/</url>
-    <content><![CDATA[<h3 id="一、手写防抖（debounce）"><a href="#一、手写防抖（debounce）" class="headerlink" title="一、手写防抖（debounce）"></a>一、手写防抖（debounce）</h3><pre><code class="js">// debounce
-// 举例：购物车加减数量
-function debounce(fn, delay=500) {
-    // timer 写在闭包中，因此防抖也是闭包的一个应用
-    let timer = null;
+    <title>electron（send、sendSync、invoke）主进程与渲染进程通信的区别</title>
+    <url>/2022/04/06/electron-ipc/index/</url>
+    <content><![CDATA[<h2 id="ipcRender-send"><a href="#ipcRender-send" class="headerlink" title="ipcRender.send"></a>ipcRender.send</h2><p>渲染进程 render.js</p>
+<pre><code class="js">// render.js
+const { ipcRenderer } = require(&#39;electron&#39;);
 
-    return function() {
-        if (timer) {
-            clearTimeout(timer)
-        }
-        timer = setTimeout(() =&gt; {
-            fn.apply(this, arguments);
-            timer = null;
-        }, delay)
-    }
+// send 方法发送，并绑定另一个事件接收返回值
+function sendMessageToMain() {
+  ipcRenderer.send(&#39;render-send-to-main&#39;, &#39;我是渲染进程通过 send 发送的消息&#39;);
 }
-
-// 验证
-input1.addEventListener(&#39;keyup&#39;, debounce(() =&gt; {
-  console.log(input1.value);
-}), 600)
+ipcRenderer.on(&#39;main-reply-to-render&#39;, (event, message) =&gt; {
+  console.log(&#39;replyMessage&#39;, message); // &#39;replyMessage 主进程通过 reply 回复给渲染进程的消息&#39;
+})
 </code></pre>
-<h3 id="二、手写节流（throttle）"><a href="#二、手写节流（throttle）" class="headerlink" title="二、手写节流（throttle）"></a>二、手写节流（throttle）</h3><pre><code class="js">// 节流
-// 举例：button按钮点击后置灰
-function throttle(fn, delay=100) {
-  let timer = null;
+<p>主进程 main.js：</p>
+<pre><code class="js">// main.js
+const { ipcMain } = require(&#39;electron&#39;);
 
-  return () =&gt; {
-    if (timer) return;
-    timer = setTimeOut(() =&gt; {
-      fn.apply(this, arguments);
-      timer = null;
-    }, delay)
-  }
-}
-
-// 验证
-div1.addEventListener((&#39;drag&#39;, throttle(function (e) {
-    console.log(e.offsetX, e.offsetY)
-})))
+ipcMain.on(&#39;render-send-to-main&#39;, (event, message) =&gt; {
+  console.log(`receive message from render: ${message}`)
+  event.reply(&#39;main-reply-to-render&#39;, &#39;主进程通过 reply 回复给渲染进程的消息&#39;)
+})
 </code></pre>
-<h3 id="三、事件委托"><a href="#三、事件委托" class="headerlink" title="三、事件委托"></a>三、事件委托</h3><p>假设一个 ul 下有一万个 li，li 的 innerHTML 是从 0 到 9999，当点击某个 li 时输出该 li 代表的值</p>
-<pre><code class="js">window.onload = function() {
-  // 创建dom
-  var ul = document.getElementsByTagName(&quot;ul&quot;);
-  var arr = [];
-  for (let i = 0; i &lt; 100000; i++) {
-      arr.push(i);
-  }
-  ul[0].innerHTML = &#39;&lt;li&gt;&#39; + arr.join(&#39;&lt;/li&gt;&lt;li&gt;&#39;) + &#39;&lt;/li&gt;&#39;
+<p>1、主进程通过 ipcMain.on 来监听渲染进程的消息<br>2、主进程接收到消息后，可以回复消息，也可以不回复。如果回复的话，通过 event.reply 发送另一个事件，渲染进程监听这个事件得到回复结果。如果不回复消息的话，渲染进程将接着执行 ipcRenderer.send 之后的代码</p>
+<h2 id="ipcRender-sendSync"><a href="#ipcRender-sendSync" class="headerlink" title="ipcRender.sendSync"></a>ipcRender.sendSync</h2><p>渲染进程 render.js：</p>
+<pre><code class="js">// render.js
+const { ipcRenderer } = require(&#39;electron&#39;);
 
-  // 事件委托 
-  let ul = document.getElementById(&#39;ul&#39;);
-  ul.onclick = (e) =&gt; {
-    console.log(e.target.innerText)
-  }
+function sendSyncMessageToMain() {
+  const replyMessage = ipcRenderer.sendSync(&#39;render-send-sync-to-main&#39;, &#39;我是渲染进程通过 syncSend 发送给主进程的消息&#39;);
+  console.log(&#39;replyMessage&#39;, replyMessage); // &#39;主进程回复的消息&#39;
 }
 </code></pre>
-<h2 id="四、手写-Promise-加载一张图片"><a href="#四、手写-Promise-加载一张图片" class="headerlink" title="四、手写 Promise 加载一张图片"></a>四、手写 Promise 加载一张图片</h2><pre><code class="js">function loadImg(scr) {
-  return new Promise((resolve, reject) =&gt; {
-    const img = document.createElement(&#39;img&#39;);
-    img.onload = () =&gt; {
-      resolve(img);
-    }
-    img.onerror = () =&gt; {
-      reject(new Error(`图片加载失败 ${src}`))
-    }
-    img.src = src;
+<p>主进程 main.js：</p>
+<pre><code class="js">// main.js
+const { ipcMain } = require(&#39;electron&#39;);
+
+ipcMain.on(&#39;render-send-sync-to-main&#39;, (event, message) =&gt; {
+  console.log(`receive message from render: ${message}`)
+  event.returnValue = &#39;主进程回复的消息&#39;;
+})
+</code></pre>
+<p>1、主进程通过 ipcMain.on 来处理渲染进程发送的消息<br>2、主进程通过 event.returnValue 回复渲染进程消息<br>3、如果 event.returnValue 不为 undefined 的话，渲染进程会等待 sendSync 的返回值才执行后面的代码<br>4、请保证 event.returnValue是有值的，否则会造成非预期的影响</p>
+<h2 id="ipcRender-invoke"><a href="#ipcRender-invoke" class="headerlink" title="ipcRender.invoke"></a>ipcRender.invoke</h2><p>渲染进程 render.js：</p>
+<pre><code class="js">// render.js
+const { ipcRenderer } = require(&#39;electron&#39;);
+
+async function invokeMessageToMain() {
+  const replyMessage = await ipcRenderer.invoke(&#39;render-invoke-to-main&#39;, &#39;我是渲染进程通过 invoke 发送的消息&#39;);
+  console.log(&#39;replyMessage&#39;, replyMessage);
+}
+</code></pre>
+<p>主进程 main.js：</p>
+<pre><code class="js">// main.js
+const { ipcMain } = require(&#39;electron&#39;);
+
+ipcMain.handle(&#39;render-invoke-to-main&#39;, async (event, message) =&gt; {
+  console.log(`receive message from render: ${message}`)
+  const result = await asyncWork();
+  return result;
+})
+
+const asyncWork = async () =&gt; {
+  return new Promise(resolve =&gt; {
+    setTimeout(() =&gt; {
+      resolve(&#39;延迟 2 秒获取到主进程的返回结果&#39;)
+    }, 2000)
   })
 }
-
-const url = &#39;https://pic.leetcode-cn.com/1604237471-xbJgZl-%E5%9B%BE%E7%89%871.png&#39;;
-loadImg(url).then(img =&gt; {
-    console.log(img.width)
-    return img
-}).then(img =&gt; {
-    console.log(img.height)
-}).catch(ex =&gt; console.error(ex))
 </code></pre>
-<h2 id="五、用-ajaxajax-原生实现一个-post-请求"><a href="#五、用-ajaxajax-原生实现一个-post-请求" class="headerlink" title="五、用 ajaxajax 原生实现一个 post 请求"></a>五、用 ajaxajax 原生实现一个 post 请求</h2><pre><code class="js">function ajax_post(url, data) {
-    // 1. 异步对象 ajax
-    var ajax = new XMLHttpRequest();
-
-    // 2. url 方法
-    ajax.open(&#39;post&#39;, url);
-
-    // 3. 设置请求报文
-    ajax.setRequestHeader(&#39;Content-type&#39;, &#39;text/plain&#39;);
-
-    // 4. 发送
-    if (data) {
-        ajax.send(data);
-    } else {
-        ajax.send();
-    }
-
-    // 5. 注册事件
-    ajax.onreadystatechange = function () {
-        if (ajax.readyState === 4 &amp;&amp; ajax.status === 200) {
-            console.log(ajax.respenseText);
-        }
-    }
-}
-</code></pre>
-<h2 id="六、每隔一秒输出一个数字"><a href="#六、每隔一秒输出一个数字" class="headerlink" title="六、每隔一秒输出一个数字"></a>六、每隔一秒输出一个数字</h2><pre><code class="js">// 使用let
-for (let i = 0; i &lt; 10; i++) {
-    setTimeout(() =&gt; {
-        console.log(i);
-    }, 1000 * i)
-}
-
-// 使用闭包
-for (var i = 0; i &lt; 10; i++) {
-    (function(j) {
-        setTimeout(() =&gt; {
-            console.log(j);
-        }, 1000 * j)
-    })(i)
-}
-
-// 使用settimeout第三个参数
-for(var i = 0; i &lt;= 5; i++){           
-    setTimeout((j) =&gt; {                
-        console.log(j);            
-    },i * 1000, i)        
-}
-</code></pre>
-<h2 id="七、-判断两个对象是否相等"><a href="#七、-判断两个对象是否相等" class="headerlink" title="七、 判断两个对象是否相等"></a>七、 判断两个对象是否相等</h2><pre><code class="js">/*
- * @param x {Object} 对象1
- * @param y {Object} 对象2
- * @return  {Boolean} true 为相等，false 为不等
- */
-
- const deepEqual = (x, y) =&gt; {
-  if (x === y) {
-    return true;
-  } else if ((typeof x === &#39;object&#39; &amp;&amp; x != null) &amp;&amp; (typeof y === &#39;object&#39; &amp;&amp; y != null)) {
-    if (Object.keys(x).length !=== Object.keys(y).length) return false;
-    for (let prop in x) {
-      if (y.hasOwnproperty(prop)) {
-        if (!deepEqual(x.prop, y.prop)) return false;
-      } else {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
- }
-
-//  调库实现
-console.log(_.isEqual(x, y))
-</code></pre>
+<p>1、主进程通过 ipcMain.handle 来处理渲染进程发送的消息<br>2、主进程接收到消息后，可以回复消息，也可以不回复。如果回复消息的话，可以通过 return 给渲染进程回复消息；如果不回复消息的话，渲染进程将接着执行 ipcRenderer.invoke 之后的代码<br>3、渲染进程异步等待主进程的回应， invoke 的返回值是一个 Promise</p>
 ]]></content>
       <categories>
         <category>笔记</category>
-        <category>前端</category>
       </categories>
       <tags>
-        <tag>JS</tag>
-        <tag>前端</tag>
-        <tag>应用</tag>
-        <tag>面试题</tag>
+        <tag>electron</tag>
+        <tag>通信</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Axios拦截请求封装</title>
+    <url>/2022/02/22/axios/index/</url>
+    <content><![CDATA[<h2 id="Axios拦截请求封装"><a href="#Axios拦截请求封装" class="headerlink" title="Axios拦截请求封装"></a>Axios拦截请求封装</h2><p>请求封装</p>
+<pre><code class="js">import { ApiError } from &#39;@/structure/Request&#39;;
+import { Config } from &#39;@/utils/Config&#39;;
+import axios, { AxiosRequestConfig } from &#39;axios&#39;;
+
+const service = axios.create({
+  baseURL: Config.API_ADDRESS,
+  timeout: Config.TIME_OUT
+});
+
+// 请求拦截器
+service.interceptors.request.use(
+  (config: AxiosRequestConfig) =&gt; {
+    config.headers[&#39;token&#39;] = Config.getToken() || &#39;&#39;;
+    return config;
+  },
+  error =&gt; {
+    Promise.reject(error);
+  }
+);
+
+// 响应拦截器
+service.interceptors.response.use(
+  response =&gt; {
+    const data = response.data;
+    if (data.code !== 200) {
+      switch (data.code) {
+        case 400:
+          return Promise.reject(ApiError.BadRequest);
+        case 401:
+          return Promise.reject(ApiError.Unauthorized);
+        case 403:
+          return Promise.reject(ApiError.Forbidden);
+        case 404:
+          return Promise.reject(ApiError.ResourceNotFound);
+        case 500:
+          return Promise.reject(ApiError.ServerSideError);
+        case 1001:
+          return Promise.reject(ApiError.CustomError.from(data.msg));
+        default:
+          return Promise.reject(ApiError.Unexpected.from(data.msg));
+      }
+    } else {
+      return data;
+    }
+  },
+  error =&gt; {
+    return Promise.reject(error);
+  }
+);
+
+export default service;
+
+</code></pre>
+<p>调用封装</p>
+<pre><code class="js">import { ApiResponse } from &#39;@/structure/Request&#39;;
+import service from &#39;@/utils/service&#39;;
+
+export class CommonApi {
+  public static async getTimestamp(): Promise&lt;number&gt; {
+    const response = await service.get&lt;void, ApiResponse&lt;number&gt;&gt;(&#39;/utils/getSystemTime&#39;);
+    return response.result;
+  }
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>Axios</category>
+      </categories>
+      <tags>
+        <tag>Axios</tag>
+        <tag>Axios拦截</tag>
       </tags>
   </entry>
   <entry>
@@ -773,89 +686,225 @@ console.log(arr1.flat(3)); // 3 代表数组内最多嵌套层数
       <tags>
         <tag>JS</tag>
         <tag>前端</tag>
-        <tag>面试题</tag>
         <tag>算法</tag>
+        <tag>面试题</tag>
       </tags>
   </entry>
   <entry>
-    <title>electron（send、sendSync、invoke）主进程与渲染进程通信的区别</title>
-    <url>/2022/04/06/electron-ipc/index/</url>
-    <content><![CDATA[<h2 id="ipcRender-send"><a href="#ipcRender-send" class="headerlink" title="ipcRender.send"></a>ipcRender.send</h2><p>渲染进程 render.js</p>
-<pre><code class="js">// render.js
-const { ipcRenderer } = require(&#39;electron&#39;);
+    <title>前端 JS 编程题（应用类）</title>
+    <url>/2021/11/16/js-application/index/</url>
+    <content><![CDATA[<h3 id="一、手写防抖（debounce）"><a href="#一、手写防抖（debounce）" class="headerlink" title="一、手写防抖（debounce）"></a>一、手写防抖（debounce）</h3><pre><code class="js">// debounce
+// 举例：购物车加减数量
+function debounce(fn, delay=500) {
+    // timer 写在闭包中，因此防抖也是闭包的一个应用
+    let timer = null;
 
-// send 方法发送，并绑定另一个事件接收返回值
-function sendMessageToMain() {
-  ipcRenderer.send(&#39;render-send-to-main&#39;, &#39;我是渲染进程通过 send 发送的消息&#39;);
+    return function() {
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() =&gt; {
+            fn.apply(this, arguments);
+            timer = null;
+        }, delay)
+    }
 }
-ipcRenderer.on(&#39;main-reply-to-render&#39;, (event, message) =&gt; {
-  console.log(&#39;replyMessage&#39;, message); // &#39;replyMessage 主进程通过 reply 回复给渲染进程的消息&#39;
-})
-</code></pre>
-<p>主进程 main.js：</p>
-<pre><code class="js">// main.js
-const { ipcMain } = require(&#39;electron&#39;);
 
-ipcMain.on(&#39;render-send-to-main&#39;, (event, message) =&gt; {
-  console.log(`receive message from render: ${message}`)
-  event.reply(&#39;main-reply-to-render&#39;, &#39;主进程通过 reply 回复给渲染进程的消息&#39;)
-})
+// 验证
+input1.addEventListener(&#39;keyup&#39;, debounce(() =&gt; {
+  console.log(input1.value);
+}), 600)
 </code></pre>
-<p>1、主进程通过 ipcMain.on 来监听渲染进程的消息<br>2、主进程接收到消息后，可以回复消息，也可以不回复。如果回复的话，通过 event.reply 发送另一个事件，渲染进程监听这个事件得到回复结果。如果不回复消息的话，渲染进程将接着执行 ipcRenderer.send 之后的代码</p>
-<h2 id="ipcRender-sendSync"><a href="#ipcRender-sendSync" class="headerlink" title="ipcRender.sendSync"></a>ipcRender.sendSync</h2><p>渲染进程 render.js：</p>
-<pre><code class="js">// render.js
-const { ipcRenderer } = require(&#39;electron&#39;);
+<h3 id="二、手写节流（throttle）"><a href="#二、手写节流（throttle）" class="headerlink" title="二、手写节流（throttle）"></a>二、手写节流（throttle）</h3><pre><code class="js">// 节流
+// 举例：button按钮点击后置灰
+function throttle(fn, delay=100) {
+  let timer = null;
 
-function sendSyncMessageToMain() {
-  const replyMessage = ipcRenderer.sendSync(&#39;render-send-sync-to-main&#39;, &#39;我是渲染进程通过 syncSend 发送给主进程的消息&#39;);
-  console.log(&#39;replyMessage&#39;, replyMessage); // &#39;主进程回复的消息&#39;
+  return () =&gt; {
+    if (timer) return;
+    timer = setTimeOut(() =&gt; {
+      fn.apply(this, arguments);
+      timer = null;
+    }, delay)
+  }
+}
+
+// 验证
+div1.addEventListener((&#39;drag&#39;, throttle(function (e) {
+    console.log(e.offsetX, e.offsetY)
+})))
+</code></pre>
+<h3 id="三、事件委托"><a href="#三、事件委托" class="headerlink" title="三、事件委托"></a>三、事件委托</h3><p>假设一个 ul 下有一万个 li，li 的 innerHTML 是从 0 到 9999，当点击某个 li 时输出该 li 代表的值</p>
+<pre><code class="js">window.onload = function() {
+  // 创建dom
+  var ul = document.getElementsByTagName(&quot;ul&quot;);
+  var arr = [];
+  for (let i = 0; i &lt; 100000; i++) {
+      arr.push(i);
+  }
+  ul[0].innerHTML = &#39;&lt;li&gt;&#39; + arr.join(&#39;&lt;/li&gt;&lt;li&gt;&#39;) + &#39;&lt;/li&gt;&#39;
+
+  // 事件委托 
+  let ul = document.getElementById(&#39;ul&#39;);
+  ul.onclick = (e) =&gt; {
+    console.log(e.target.innerText)
+  }
 }
 </code></pre>
-<p>主进程 main.js：</p>
-<pre><code class="js">// main.js
-const { ipcMain } = require(&#39;electron&#39;);
-
-ipcMain.on(&#39;render-send-sync-to-main&#39;, (event, message) =&gt; {
-  console.log(`receive message from render: ${message}`)
-  event.returnValue = &#39;主进程回复的消息&#39;;
-})
-</code></pre>
-<p>1、主进程通过 ipcMain.on 来处理渲染进程发送的消息<br>2、主进程通过 event.returnValue 回复渲染进程消息<br>3、如果 event.returnValue 不为 undefined 的话，渲染进程会等待 sendSync 的返回值才执行后面的代码<br>4、请保证 event.returnValue是有值的，否则会造成非预期的影响</p>
-<h2 id="ipcRender-invoke"><a href="#ipcRender-invoke" class="headerlink" title="ipcRender.invoke"></a>ipcRender.invoke</h2><p>渲染进程 render.js：</p>
-<pre><code class="js">// render.js
-const { ipcRenderer } = require(&#39;electron&#39;);
-
-async function invokeMessageToMain() {
-  const replyMessage = await ipcRenderer.invoke(&#39;render-invoke-to-main&#39;, &#39;我是渲染进程通过 invoke 发送的消息&#39;);
-  console.log(&#39;replyMessage&#39;, replyMessage);
-}
-</code></pre>
-<p>主进程 main.js：</p>
-<pre><code class="js">// main.js
-const { ipcMain } = require(&#39;electron&#39;);
-
-ipcMain.handle(&#39;render-invoke-to-main&#39;, async (event, message) =&gt; {
-  console.log(`receive message from render: ${message}`)
-  const result = await asyncWork();
-  return result;
-})
-
-const asyncWork = async () =&gt; {
-  return new Promise(resolve =&gt; {
-    setTimeout(() =&gt; {
-      resolve(&#39;延迟 2 秒获取到主进程的返回结果&#39;)
-    }, 2000)
+<h2 id="四、手写-Promise-加载一张图片"><a href="#四、手写-Promise-加载一张图片" class="headerlink" title="四、手写 Promise 加载一张图片"></a>四、手写 Promise 加载一张图片</h2><pre><code class="js">function loadImg(scr) {
+  return new Promise((resolve, reject) =&gt; {
+    const img = document.createElement(&#39;img&#39;);
+    img.onload = () =&gt; {
+      resolve(img);
+    }
+    img.onerror = () =&gt; {
+      reject(new Error(`图片加载失败 ${src}`))
+    }
+    img.src = src;
   })
 }
+
+const url = &#39;https://pic.leetcode-cn.com/1604237471-xbJgZl-%E5%9B%BE%E7%89%871.png&#39;;
+loadImg(url).then(img =&gt; {
+    console.log(img.width)
+    return img
+}).then(img =&gt; {
+    console.log(img.height)
+}).catch(ex =&gt; console.error(ex))
 </code></pre>
-<p>1、主进程通过 ipcMain.handle 来处理渲染进程发送的消息<br>2、主进程接收到消息后，可以回复消息，也可以不回复。如果回复消息的话，可以通过 return 给渲染进程回复消息；如果不回复消息的话，渲染进程将接着执行 ipcRenderer.invoke 之后的代码<br>3、渲染进程异步等待主进程的回应， invoke 的返回值是一个 Promise</p>
+<h2 id="五、用-ajaxajax-原生实现一个-post-请求"><a href="#五、用-ajaxajax-原生实现一个-post-请求" class="headerlink" title="五、用 ajaxajax 原生实现一个 post 请求"></a>五、用 ajaxajax 原生实现一个 post 请求</h2><pre><code class="js">function ajax_post(url, data) {
+    // 1. 异步对象 ajax
+    var ajax = new XMLHttpRequest();
+
+    // 2. url 方法
+    ajax.open(&#39;post&#39;, url);
+
+    // 3. 设置请求报文
+    ajax.setRequestHeader(&#39;Content-type&#39;, &#39;text/plain&#39;);
+
+    // 4. 发送
+    if (data) {
+        ajax.send(data);
+    } else {
+        ajax.send();
+    }
+
+    // 5. 注册事件
+    ajax.onreadystatechange = function () {
+        if (ajax.readyState === 4 &amp;&amp; ajax.status === 200) {
+            console.log(ajax.respenseText);
+        }
+    }
+}
+</code></pre>
+<h2 id="六、每隔一秒输出一个数字"><a href="#六、每隔一秒输出一个数字" class="headerlink" title="六、每隔一秒输出一个数字"></a>六、每隔一秒输出一个数字</h2><pre><code class="js">// 使用let
+for (let i = 0; i &lt; 10; i++) {
+    setTimeout(() =&gt; {
+        console.log(i);
+    }, 1000 * i)
+}
+
+// 使用闭包
+for (var i = 0; i &lt; 10; i++) {
+    (function(j) {
+        setTimeout(() =&gt; {
+            console.log(j);
+        }, 1000 * j)
+    })(i)
+}
+
+// 使用settimeout第三个参数
+for(var i = 0; i &lt;= 5; i++){           
+    setTimeout((j) =&gt; {                
+        console.log(j);            
+    },i * 1000, i)        
+}
+</code></pre>
+<h2 id="七、-判断两个对象是否相等"><a href="#七、-判断两个对象是否相等" class="headerlink" title="七、 判断两个对象是否相等"></a>七、 判断两个对象是否相等</h2><pre><code class="js">/*
+ * @param x {Object} 对象1
+ * @param y {Object} 对象2
+ * @return  {Boolean} true 为相等，false 为不等
+ */
+
+ const deepEqual = (x, y) =&gt; {
+  if (x === y) {
+    return true;
+  } else if ((typeof x === &#39;object&#39; &amp;&amp; x != null) &amp;&amp; (typeof y === &#39;object&#39; &amp;&amp; y != null)) {
+    if (Object.keys(x).length !=== Object.keys(y).length) return false;
+    for (let prop in x) {
+      if (y.hasOwnproperty(prop)) {
+        if (!deepEqual(x.prop, y.prop)) return false;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+ }
+
+//  调库实现
+console.log(_.isEqual(x, y))
+</code></pre>
 ]]></content>
       <categories>
         <category>笔记</category>
+        <category>前端</category>
       </categories>
       <tags>
-        <tag>electron</tag>
-        <tag>通信</tag>
+        <tag>JS</tag>
+        <tag>前端</tag>
+        <tag>面试题</tag>
+        <tag>应用</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sortable+element实现表格行拖拽</title>
+    <url>/2020/04/07/sortable-element-drag/index/</url>
+    <content><![CDATA[<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><pre><code class="bash">npm install vuedraggable
+</code></pre>
+<h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><pre><code class="js">import Sortable from &#39;sortablejs&#39;
+</code></pre>
+<h3 id="el-table-添加row-key属性"><a href="#el-table-添加row-key属性" class="headerlink" title="el-table 添加row-key属性"></a>el-table 添加row-key属性</h3><pre><code class="html">&lt;el-table
+  ref=&quot;filterTable&quot;
+  row-key=&quot;ip&quot; 
+  @filter-change=&quot;handlerFilterChange&quot; 
+  class=&quot;cl-table&quot; 
+  :data=&quot;resourceList&quot; 
+  v-loading=&quot;resourceListLoading&quot; 
+  stripe
+  style=&quot;width:100%;&quot;&gt;
+  &lt;el-table-column
+    prop=&quot;name&quot;
+    label=&quot;主机名&quot; 
+    :min-width=&quot;150&quot; 
+    show-overflow-tooltip&gt;
+  &lt;/el-table-column&gt;
+&lt;/el-table&gt;
+</code></pre>
+<h3 id="将拖拽元素设置为要拖动项的父级元素"><a href="#将拖拽元素设置为要拖动项的父级元素" class="headerlink" title="将拖拽元素设置为要拖动项的父级元素"></a>将拖拽元素设置为要拖动项的父级元素</h3><pre><code class="js">mounted() {
+  // 表格中需要实现行拖动，所以选中tr的父级元素
+  const table = document.querySelector(&#39;.el-table__body-wrapper tbody&#39;)
+  const self = this
+  Sortable.create(table, {
+    onEnd({ newIndex, oldIndex }) {
+      console.log(newIndex, oldIndex)
+      const targetRow = self.resourceList.splice(oldIndex, 1)[0]
+      self.resourceList.splice(newIndex, 0, targetRow)
+    }
+  })
+}
+</code></pre>
+]]></content>
+      <categories>
+        <category>VUE</category>
+        <category>element</category>
+      </categories>
+      <tags>
+        <tag>VUE</tag>
+        <tag>element</tag>
+        <tag>table</tag>
+        <tag>拖拽</tag>
       </tags>
   </entry>
   <entry>
@@ -1076,6 +1125,94 @@ console.log(123 instanceof Object) // false
       </tags>
   </entry>
   <entry>
+    <title>vite配置全局svg图标</title>
+    <url>/2022/04/07/svg-vite/index/</url>
+    <content><![CDATA[<h2 id="vite-config-ts配置"><a href="#vite-config-ts配置" class="headerlink" title="vite.config.ts配置"></a>vite.config.ts配置</h2><pre><code class="js">import path from &#39;path&#39;;
+import { createSvgIconsPlugin } from &#39;vite-plugin-svg-icons&#39;;
+export default defineConfig(env =&gt; {
+  return {
+    plugins: [
+      createSvgIconsPlugin({
+        // 指定要缓存的图标文件夹
+        iconDirs: [path.resolve(process.cwd(), &#39;src/render/assets/svg&#39;)],
+        // 执行icon name的格式
+        symbolId: &#39;icon-[dir]-[name]&#39;,
+      })
+    ]
+  }
+})
+</code></pre>
+<h2 id="SvgIcon-vue"><a href="#SvgIcon-vue" class="headerlink" title="SvgIcon.vue"></a>SvgIcon.vue</h2><pre><code class="vue">&lt;template&gt;
+  &lt;svg :class=&quot;svgClass&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;use :xlink:href=&quot;iconName&quot; :fill=&quot;color&quot; /&gt;
+  &lt;/svg&gt;
+&lt;/template&gt;
+
+&lt;script lang=&quot;ts&quot;&gt;
+import { defineComponent, computed } from &#39;vue&#39;;
+export default defineComponent({
+  props: {
+    iconClass: {
+      type: String,
+      required: true
+    },
+    className: {
+      type: String,
+      default: &#39;&#39;
+    },
+    color: {
+      type: String,
+      default: &#39;&#39;
+    },
+  },
+  setup(props) {
+    return {
+      iconName: computed(() =&gt; `#icon-${props.iconClass}`),
+      svgClass: computed(() =&gt; {
+        if (props.className) {
+          return `svg-icon ${props.className}`
+        }
+        return &#39;svg-icon&#39;
+      })
+    }
+  }
+})
+&lt;/script&gt;
+
+&lt;style scoped&gt;
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  position: relative;
+  fill: currentColor;
+  vertical-align: -2px;
+}
+&lt;/style&gt;
+</code></pre>
+<h2 id="main-js-引用SvgIcon-vue"><a href="#main-js-引用SvgIcon-vue" class="headerlink" title="main.js 引用SvgIcon.vue"></a>main.js 引用SvgIcon.vue</h2><pre><code class="js">import { createApp } from &#39;vue&#39;
+import App from &#39;./App.vue&#39;
+import &#39;virtual:svg-icons-register&#39;;
+import SvgIcon from &#39;@/render/components/svgIcon/SvgIcon.vue&#39;;
+const app = createApp(App);
+app.component(&#39;svg-icon&#39;,SvgIcon);
+</code></pre>
+<h2 id="home-vue-使用SvgIcon"><a href="#home-vue-使用SvgIcon" class="headerlink" title="home.vue 使用SvgIcon"></a>home.vue 使用SvgIcon</h2><pre><code class="vue">&lt;template&gt;
+  &lt;div class=&quot;home&quot;&gt;
+    &lt;svg-icon iconClass=&quot;noNet&quot; className=&quot;className&quot; /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>vite</tag>
+        <tag>svg</tag>
+        <tag>图标</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>笔记</title>
     <url>/2022/02/23/note/index/</url>
     <content><![CDATA[<h2 id="组件通信"><a href="#组件通信" class="headerlink" title="组件通信"></a>组件通信</h2><h3 id="父-gt-子"><a href="#父-gt-子" class="headerlink" title="父 =&gt; 子"></a>父 =&gt; 子</h3><p> props</p>
@@ -1156,55 +1293,6 @@ this.$bus.$emit(&#39;foo&#39;, &#39;msg&#39;)
       <tags>
         <tag>笔记</tag>
         <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>sortable+element实现表格行拖拽</title>
-    <url>/2020/04/07/sortable-element-drag/index/</url>
-    <content><![CDATA[<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><pre><code class="bash">npm install vuedraggable
-</code></pre>
-<h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><pre><code class="js">import Sortable from &#39;sortablejs&#39;
-</code></pre>
-<h3 id="el-table-添加row-key属性"><a href="#el-table-添加row-key属性" class="headerlink" title="el-table 添加row-key属性"></a>el-table 添加row-key属性</h3><pre><code class="html">&lt;el-table
-  ref=&quot;filterTable&quot;
-  row-key=&quot;ip&quot; 
-  @filter-change=&quot;handlerFilterChange&quot; 
-  class=&quot;cl-table&quot; 
-  :data=&quot;resourceList&quot; 
-  v-loading=&quot;resourceListLoading&quot; 
-  stripe
-  style=&quot;width:100%;&quot;&gt;
-  &lt;el-table-column
-    prop=&quot;name&quot;
-    label=&quot;主机名&quot; 
-    :min-width=&quot;150&quot; 
-    show-overflow-tooltip&gt;
-  &lt;/el-table-column&gt;
-&lt;/el-table&gt;
-</code></pre>
-<h3 id="将拖拽元素设置为要拖动项的父级元素"><a href="#将拖拽元素设置为要拖动项的父级元素" class="headerlink" title="将拖拽元素设置为要拖动项的父级元素"></a>将拖拽元素设置为要拖动项的父级元素</h3><pre><code class="js">mounted() {
-  // 表格中需要实现行拖动，所以选中tr的父级元素
-  const table = document.querySelector(&#39;.el-table__body-wrapper tbody&#39;)
-  const self = this
-  Sortable.create(table, {
-    onEnd({ newIndex, oldIndex }) {
-      console.log(newIndex, oldIndex)
-      const targetRow = self.resourceList.splice(oldIndex, 1)[0]
-      self.resourceList.splice(newIndex, 0, targetRow)
-    }
-  })
-}
-</code></pre>
-]]></content>
-      <categories>
-        <category>VUE</category>
-        <category>element</category>
-      </categories>
-      <tags>
-        <tag>VUE</tag>
-        <tag>element</tag>
-        <tag>table</tag>
-        <tag>拖拽</tag>
       </tags>
   </entry>
   <entry>
@@ -1398,97 +1486,52 @@ export default class HomeView extends Vue {}
         <category>笔记</category>
       </categories>
       <tags>
-        <tag>webpack</tag>
         <tag>svg</tag>
         <tag>图标</tag>
+        <tag>webpack</tag>
       </tags>
   </entry>
   <entry>
-    <title>vite配置全局svg图标</title>
-    <url>/2022/04/07/svg-vite/index/</url>
-    <content><![CDATA[<h2 id="vite-config-ts配置"><a href="#vite-config-ts配置" class="headerlink" title="vite.config.ts配置"></a>vite.config.ts配置</h2><pre><code class="js">import path from &#39;path&#39;;
-import { createSvgIconsPlugin } from &#39;vite-plugin-svg-icons&#39;;
-export default defineConfig(env =&gt; {
-  return {
-    plugins: [
-      createSvgIconsPlugin({
-        // 指定要缓存的图标文件夹
-        iconDirs: [path.resolve(process.cwd(), &#39;src/render/assets/svg&#39;)],
-        // 执行icon name的格式
-        symbolId: &#39;icon-[dir]-[name]&#39;,
-      })
-    ]
+    <title>vue-element-table-滚动加载</title>
+    <url>/2020/04/07/vue-element-table_rolling-load/index/</url>
+    <content><![CDATA[<p>首先在main.js文件注册全局事件，代码如下：</p>
+<pre><code class="js">Vue.directive(&#39;loadmore&#39;, {
+  bind(el, binding) {
+    var p = 0;
+    var t = 0;
+    var down = true;
+    var selectWrap = el.querySelector(&#39;.el-table__body-wrapper&#39;)
+    selectWrap.addEventListener(&#39;scroll&#39;, function() {
+      //判断是否向下滚动
+      p = this.scrollTop;
+      // if ( t &lt; p){down=true}else{down=false}
+      if(t &lt; p){
+        down = true;
+      }else{
+        down = false;
+      }
+      t = p;
+      //判断是否到底
+      const sign = 10;
+      const scrollDistance = this.scrollHeight - this.scrollTop - this.clientHeight
+      if (scrollDistance &lt;= sign &amp;&amp; down) {
+        binding.value()
+      }
+    })
   }
 })
 </code></pre>
-<h2 id="SvgIcon-vue"><a href="#SvgIcon-vue" class="headerlink" title="SvgIcon.vue"></a>SvgIcon.vue</h2><pre><code class="vue">&lt;template&gt;
-  &lt;svg :class=&quot;svgClass&quot; aria-hidden=&quot;true&quot;&gt;
-    &lt;use :xlink:href=&quot;iconName&quot; :fill=&quot;color&quot; /&gt;
-  &lt;/svg&gt;
-&lt;/template&gt;
-
-&lt;script lang=&quot;ts&quot;&gt;
-import { defineComponent, computed } from &#39;vue&#39;;
-export default defineComponent({
-  props: {
-    iconClass: {
-      type: String,
-      required: true
-    },
-    className: {
-      type: String,
-      default: &#39;&#39;
-    },
-    color: {
-      type: String,
-      default: &#39;&#39;
-    },
-  },
-  setup(props) {
-    return {
-      iconName: computed(() =&gt; `#icon-${props.iconClass}`),
-      svgClass: computed(() =&gt; {
-        if (props.className) {
-          return `svg-icon ${props.className}`
-        }
-        return &#39;svg-icon&#39;
-      })
-    }
-  }
-})
-&lt;/script&gt;
-
-&lt;style scoped&gt;
-.svg-icon {
-  width: 1em;
-  height: 1em;
-  position: relative;
-  fill: currentColor;
-  vertical-align: -2px;
-}
-&lt;/style&gt;
-</code></pre>
-<h2 id="main-js-引用SvgIcon-vue"><a href="#main-js-引用SvgIcon-vue" class="headerlink" title="main.js 引用SvgIcon.vue"></a>main.js 引用SvgIcon.vue</h2><pre><code class="js">import { createApp } from &#39;vue&#39;
-import App from &#39;./App.vue&#39;
-import &#39;virtual:svg-icons-register&#39;;
-import SvgIcon from &#39;@/render/components/svgIcon/SvgIcon.vue&#39;;
-const app = createApp(App);
-app.component(&#39;svg-icon&#39;,SvgIcon);
-</code></pre>
-<h2 id="home-vue-使用SvgIcon"><a href="#home-vue-使用SvgIcon" class="headerlink" title="home.vue 使用SvgIcon"></a>home.vue 使用SvgIcon</h2><pre><code class="vue">&lt;template&gt;
-  &lt;div class=&quot;home&quot;&gt;
-    &lt;svg-icon iconClass=&quot;noNet&quot; className=&quot;className&quot; /&gt;
-  &lt;/div&gt;
-&lt;/template&gt;
-</code></pre>
+<p>在组件中，使用自定义的事件：<br>v-loadmore=”loadMore”<br>在methods中调用loadMore<br>这样就实现啦！！！</p>
 ]]></content>
       <categories>
-        <category>笔记</category>
+        <category>VUE</category>
+        <category>element</category>
       </categories>
       <tags>
-        <tag>svg</tag>
-        <tag>图标</tag>
-        <tag>vite</tag>
+        <tag>VUE</tag>
+        <tag>element</tag>
+        <tag>table</tag>
+        <tag>滚动加载</tag>
       </tags>
   </entry>
   <entry>
@@ -1573,49 +1616,6 @@ app.component(&#39;svg-icon&#39;,SvgIcon);
       </tags>
   </entry>
   <entry>
-    <title>vue-element-table-滚动加载</title>
-    <url>/2020/04/07/vue-element-table_rolling-load/index/</url>
-    <content><![CDATA[<p>首先在main.js文件注册全局事件，代码如下：</p>
-<pre><code class="js">Vue.directive(&#39;loadmore&#39;, {
-  bind(el, binding) {
-    var p = 0;
-    var t = 0;
-    var down = true;
-    var selectWrap = el.querySelector(&#39;.el-table__body-wrapper&#39;)
-    selectWrap.addEventListener(&#39;scroll&#39;, function() {
-      //判断是否向下滚动
-      p = this.scrollTop;
-      // if ( t &lt; p){down=true}else{down=false}
-      if(t &lt; p){
-        down = true;
-      }else{
-        down = false;
-      }
-      t = p;
-      //判断是否到底
-      const sign = 10;
-      const scrollDistance = this.scrollHeight - this.scrollTop - this.clientHeight
-      if (scrollDistance &lt;= sign &amp;&amp; down) {
-        binding.value()
-      }
-    })
-  }
-})
-</code></pre>
-<p>在组件中，使用自定义的事件：<br>v-loadmore=”loadMore”<br>在methods中调用loadMore<br>这样就实现啦！！！</p>
-]]></content>
-      <categories>
-        <category>VUE</category>
-        <category>element</category>
-      </categories>
-      <tags>
-        <tag>VUE</tag>
-        <tag>element</tag>
-        <tag>table</tag>
-        <tag>滚动加载</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>vue异步更新机制</title>
     <url>/2022/02/21/vue-asynchronous-update-mechanism/index/</url>
     <content><![CDATA[<h2 id="vue异步更新机制"><a href="#vue异步更新机制" class="headerlink" title="vue异步更新机制"></a>vue异步更新机制</h2><p>vue中更新dom是异步执行的，只要侦听到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。如果同一个 watcher 被多次触发，只会被推入到队列中一次。（先缓冲，缓冲后再将多次触发属性的最后一次作为promise放入队列；而不是一上来就放队列）</p>
@@ -1657,115 +1657,6 @@ app.component(&#39;svg-icon&#39;,SvgIcon);
       <tags>
         <tag>VUE</tag>
         <tag>异步更新机制</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>vue-property-decorator用法</title>
-    <url>/2022/03/17/vue-property-decorator/index/</url>
-    <content><![CDATA[<h3 id="vue-property-decorator"><a href="#vue-property-decorator" class="headerlink" title="vue-property-decorator"></a>vue-property-decorator</h3><h4 id="data"><a href="#data" class="headerlink" title="data"></a>data</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
-    import {Vue, Component} from &#39;vue-property-decorator&#39;;
-
-    @Component({})
-    export default class &quot;组件名&quot; extends Vue{
-        ValA: string = &quot;hello world&quot;;
-        ValB: number = 1;
-    }
-&lt;/script&gt;
-</code></pre>
-<h4 id="computed"><a href="#computed" class="headerlink" title="computed"></a>computed</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
-    import {Vue, Component} from &#39;vue-property-decorator&#39;;
-
-    @Component({})
-    export default class &quot;组件名&quot; extends Vue{
-        get ValA(){
-            return 1;
-        }
-    }
-&lt;/script&gt;
-</code></pre>
-<h4 id="Emit"><a href="#Emit" class="headerlink" title="Emit"></a>Emit</h4><p>@Emit()不传参数,那么它触发的事件名就是它所修饰的函数名.<br>@Emit(name: string),里面传递一个字符串,该字符串为要触发的事件名.</p>
-<pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
-    import {Vue, Component, Emit} from &#39;vue-property-decorator&#39;;
-
-    @Component({})
-    export default class &quot;组件名&quot; extends Vue{
-        mounted(){
-            this.$on(&#39;emit-todo&#39;, function(n) {
-                console.log(n)
-            })
-
-            this.emitTodo(&#39;world&#39;);
-        }
-
-            @Emit()
-        emitTodo(n: string){
-            console.log(&#39;hello&#39;);
-        }
-    }
-&lt;/script&gt;
-</code></pre>
-<h4 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h4><pre><code class="vue">&lt;script&gt;
-import {Vue, Component, Watch} from &#39;vue-property-decorator&#39;;
-
-@Watch(&#39;child&#39;)
-onChangeValue(newVal: string, oldVal: string){
-    // todo...
-}
-
-@Watch(&#39;person&#39;, {immediate: true, deep: true})
-onChangeValue(newVal: Person, oldVal: Person){
-    // todo...
-}
-&lt;/script&gt;
-</code></pre>
-<h4 id="Prop"><a href="#Prop" class="headerlink" title="Prop"></a>Prop</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
-    import {Vue, Component, Prop} from &#39;vue-property-decorator&#39;;
-
-    @Component({})
-    export default class &quot;组件名&quot; extends Vue{
-        @Prop(Number) propA!: number;
-        @Prop({default: &#39;default value&#39;}) propB!: string;
-        @propC([String, Boolean]) propC: string | boolean;
-    }
-&lt;/script&gt;
-</code></pre>
-<h4 id="Mixins"><a href="#Mixins" class="headerlink" title="Mixins"></a>Mixins</h4><p>一种是vue-class-component提供的.</p>
-<pre><code class="vue">&lt;script&gt;
-import  Component  {mixins}  from &#39;vue-class-component&#39;;
-import myMixins from &#39;mixins.ts&#39;;
-
-@Component
-// 直接extends myMinxins 也可以正常运行
-export class myComponent extends mixins(myMixins) {
-      created(){
-          console.log(this.value) // =&gt; Hello
-    }
-}
-&lt;/script&gt;
-</code></pre>
-<p>第二种方式是在@Component中混入.</p>
-<pre><code class="vue">&lt;script&gt;
-import { Vue, Component, Prop } from &#39;vue-property-decorator&#39;;
-import myMixins from &#39;@static/js/mixins&#39;;
-
-@Component({
-    mixins: [myMixins]
-})
-export default class myComponent extends Vue{
-    created(){
-        console.log(this.value) // =&gt; Hello
-    }
-}
-&lt;/script&gt;
-</code></pre>
-]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>vue</tag>
-        <tag>vue-property-decorator</tag>
-        <tag>ts</tag>
       </tags>
   </entry>
   <entry>
@@ -2051,6 +1942,115 @@ class Compile {
         <tag>原理</tag>
         <tag>vue</tag>
         <tag>双向绑定</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue-property-decorator用法</title>
+    <url>/2022/03/17/vue-property-decorator/index/</url>
+    <content><![CDATA[<h3 id="vue-property-decorator"><a href="#vue-property-decorator" class="headerlink" title="vue-property-decorator"></a>vue-property-decorator</h3><h4 id="data"><a href="#data" class="headerlink" title="data"></a>data</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        ValA: string = &quot;hello world&quot;;
+        ValB: number = 1;
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="computed"><a href="#computed" class="headerlink" title="computed"></a>computed</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        get ValA(){
+            return 1;
+        }
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="Emit"><a href="#Emit" class="headerlink" title="Emit"></a>Emit</h4><p>@Emit()不传参数,那么它触发的事件名就是它所修饰的函数名.<br>@Emit(name: string),里面传递一个字符串,该字符串为要触发的事件名.</p>
+<pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component, Emit} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        mounted(){
+            this.$on(&#39;emit-todo&#39;, function(n) {
+                console.log(n)
+            })
+
+            this.emitTodo(&#39;world&#39;);
+        }
+
+            @Emit()
+        emitTodo(n: string){
+            console.log(&#39;hello&#39;);
+        }
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h4><pre><code class="vue">&lt;script&gt;
+import {Vue, Component, Watch} from &#39;vue-property-decorator&#39;;
+
+@Watch(&#39;child&#39;)
+onChangeValue(newVal: string, oldVal: string){
+    // todo...
+}
+
+@Watch(&#39;person&#39;, {immediate: true, deep: true})
+onChangeValue(newVal: Person, oldVal: Person){
+    // todo...
+}
+&lt;/script&gt;
+</code></pre>
+<h4 id="Prop"><a href="#Prop" class="headerlink" title="Prop"></a>Prop</h4><pre><code class="vue">&lt;script lang=&quot;ts&quot;&gt;
+    import {Vue, Component, Prop} from &#39;vue-property-decorator&#39;;
+
+    @Component({})
+    export default class &quot;组件名&quot; extends Vue{
+        @Prop(Number) propA!: number;
+        @Prop({default: &#39;default value&#39;}) propB!: string;
+        @propC([String, Boolean]) propC: string | boolean;
+    }
+&lt;/script&gt;
+</code></pre>
+<h4 id="Mixins"><a href="#Mixins" class="headerlink" title="Mixins"></a>Mixins</h4><p>一种是vue-class-component提供的.</p>
+<pre><code class="vue">&lt;script&gt;
+import  Component  {mixins}  from &#39;vue-class-component&#39;;
+import myMixins from &#39;mixins.ts&#39;;
+
+@Component
+// 直接extends myMinxins 也可以正常运行
+export class myComponent extends mixins(myMixins) {
+      created(){
+          console.log(this.value) // =&gt; Hello
+    }
+}
+&lt;/script&gt;
+</code></pre>
+<p>第二种方式是在@Component中混入.</p>
+<pre><code class="vue">&lt;script&gt;
+import { Vue, Component, Prop } from &#39;vue-property-decorator&#39;;
+import myMixins from &#39;@static/js/mixins&#39;;
+
+@Component({
+    mixins: [myMixins]
+})
+export default class myComponent extends Vue{
+    created(){
+        console.log(this.value) // =&gt; Hello
+    }
+}
+&lt;/script&gt;
+</code></pre>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>vue</tag>
+        <tag>vue-property-decorator</tag>
+        <tag>ts</tag>
       </tags>
   </entry>
 </search>

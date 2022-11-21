@@ -36,8 +36,8 @@
   mashiro_option.site_name = "脑袋空空0hayo";
   mashiro_option.author_name = "0hayo";
   mashiro_option.site_url = "https://sakura.hojun.cn";
-  mashiro_option.v_appId = "GyC3NzMvd0hT9Yyd2hYIC0MN-gzGzoHsz";
-  mashiro_option.v_appKey = "mgOpfzbkHYqU92CV4IDlAUHQ";
+  mashiro_option.v_appId = "hN9vJ1OhtrO7Upzk2pvWsov2-gzGzoHsz";
+  mashiro_option.v_appKey = "mVVE2Wb5xdFQtsYsV922HKfR";
   mashiro_option.mathjax = "0";
   mashiro_option.qq_api_url = "https://api.mashiro.top/qqinfo/"; 
   mashiro_option.qq_avatar_api_url = "https://api.mashiro.top/qqinfo/";
@@ -387,15 +387,15 @@
           
             <div class="post-nepre half previous">
           
-            <a href="/2020/04/14/git-github-ssh/index/" rel="prev">
+            <a href="/2020/04/07/sortable-element-drag/index/" rel="prev">
               <div class="background">
-                <img class="lazyload" src="https://cdn.jsdelivr.net/gh/honjun/cdn@1.6/img/loader/orange.progress-bar-stripe-loader.svg" data-src="/images/cover/(2).jpg.webp" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" onerror="imgError(this,3)" src="/images/cover/(2).jpg.webp">
+                <img class="lazyload" src="https://cdn.jsdelivr.net/gh/honjun/cdn@1.6/img/loader/orange.progress-bar-stripe-loader.svg" data-src="/images/cover/20221121143322.jpg" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" onerror="imgError(this,3)" src="/images/cover/20221121143322.jpg">
               </div>
               <span class="label">
               Previous Post</span>
               <div class="info">
                 <h3>
-                Git与Github进行SSH连接</h3>
+                sortable+element实现表格行拖拽</h3>
                 <hr>
               </div>
             </a>
@@ -405,15 +405,15 @@
           
             <div class="post-nepre half next">
           
-            <a href="/2020/04/07/sortable-element-drag/index/" rel="next">
+            <a href="/2020/04/07/viewPort/index/" rel="next">
               <div class="background">
-                <img class="lazyload" src="https://cdn.jsdelivr.net/gh/honjun/cdn@1.6/img/loader/orange.progress-bar-stripe-loader.svg" data-src="/images/cover/20221121143322.jpg" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" onerror="imgError(this,3)" src="/images/cover/20221121143322.jpg">
+                <img class="lazyload" src="https://cdn.jsdelivr.net/gh/honjun/cdn@1.6/img/loader/orange.progress-bar-stripe-loader.svg" data-src="/images/cover/20221121143259.png" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;" onerror="imgError(this,3)" src="/images/cover/20221121143259.png">
               </div>
               <span class="label">
               Next Post</span>
               <div class="info">
                 <h3>
-                sortable+element实现表格行拖拽</h3>
+                viewPort适配移动端</h3>
                 <hr>
               </div>
             </a>
@@ -421,23 +421,59 @@
         
       </section>
       
-<div id="vcomments"></div>
-<script>
-  window.onload = function(){
-      var valine = new Valine();
-      valine.init({
-        el: '#vcomments',
-        appId: "GyC3NzMvd0hT9Yyd2hYIC0MN-gzGzoHsz",
-        appKey: "mgOpfzbkHYqU92CV4IDlAUHQ",
-        path: window.location.pathname,
-        placeholder: "你是我一生只会遇见一次的惊喜 ..."
-      })
-  }
-</script>
+
+    
+      <script src="//cdn.jsdelivr.net/npm/@waline/client"></script>
+      <div id="waline"></div>
+      <style>
+        #waline textarea {
+          box-sizing: border-box;
+          background: url("https://gitee.com/cungudafa/source/raw/master/img/gif/Sitich/Sitich2.gif") 100% 100% no-repeat;
+        }
+      </style>
+      <script>
+        Waline({
+          el: '#waline',
+          serverURL: '',
+          pageSize: '10',
+          lang: 'zh-CN',
+          requiredFields: ['nick', 'mail'], //设置必填项
+          placeholder: '祝开开心心！',
+          visitor: 'true',
+          emoji: [
+            'https://cdn.jsdelivr.net/gh/walinejs/emojis@1.0.0/tieba',
+            'https://cdn.jsdelivr.net/gh/walinejs/emojis@1.0.0/bilibili',
+            'https://cdn.jsdelivr.net/gh/walinejs/emojis@1.0.0/weibo',
+          ],
+          avatar: 'mp',
+          dark: 'auto',
+        });
+      </script>
+      
 
 
+        
+          <!-- 来必力City版安装代码 -->
+          <div id="lv-container" data-id="city" data-uid="">
+            <script type="text/javascript">
 
+              (function (d, s) {
+                var j, e = d.getElementsByTagName(s)[0]; if (typeof LivereTower === 'function') { return; }
 
+                j = d.createElement(s);
+
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+
+              })(document, 'script');
+            </script>
+            <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+          </div>
+          <!-- City版安装代码已完成 -->
+          
       <section class="author-profile">
         <div class="info" itemprop="author" itemscope="" itemtype="https://schema.org/Person">
           <a href="" class="profile gravatar"><img src="/images/tx1.jpeg" itemprop="image" alt="0hayo" height="70" width="70"></a>
